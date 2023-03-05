@@ -7,5 +7,6 @@ locals {
   common_tags = {
     Maintainer = "Stevan"
     Project    = "TestInfra"
+    Resource = "Main Cloud Infra"
   }
 }
