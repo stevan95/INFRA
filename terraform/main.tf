@@ -2,94 +2,19 @@ provider "aws" {
   region = "us-east-1"
 }
 
+module "vpc" {
+  source = "./modules/vpc"
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-resource "aws_vpc" "main-vpc" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = "default"
-
-  tags = local.common_tags
-}
-
-resource "aws_subnet" "private-subnet" {
-  vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = local.private-subnet
-
-  availability_zone = data.aws_availability_zones.available.names[0]
-
-  tags = local.common_tags
-}
-
-resource "aws_subnet" "public-subnet" {
-  vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = local.public-subnet
-
-  availability_zone = data.aws_availability_zones.available.names[1]
-
-  tags = local.common_tags
-}
-
-resource "aws_internet_gateway" "public-gateway" {
-  vpc_id = aws_vpc.main-vpc.id
-
-  tags = local.common_tags
-}
-
-resource "aws_eip" "nat-gateway-eip" {
-  vpc = true
-
-  tags = local.common_tags
-}
-
-resource "aws_nat_gateway" "nat-gateway" {
-  allocation_id = aws_eip.nat-gateway-eip.id
-  subnet_id     = aws_subnet.public-subnet.id
-
-  depends_on = [aws_internet_gateway.public-gateway]
-
-  tags = local.common_tags
-}
-
-resource "aws_route_table" "public-vpc-route" {
-  vpc_id = aws_vpc.main-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.public-gateway.id
-  }
-
-  tags = local.common_tags
-}
-
-resource "aws_route_table" "private-vpc-route" {
-  vpc_id = aws_vpc.main-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat-gateway.id
-  }
-
-  tags = local.common_tags
-}
-
-resource "aws_route_table_association" "public" {
-  depends_on     = [aws_subnet.public-subnet]
-  route_table_id = aws_route_table.public-vpc-route.id
-  subnet_id      = aws_subnet.public-subnet.id
-}
-resource "aws_route_table_association" "private" {
-  depends_on     = [aws_subnet.private-subnet]
-  route_table_id = aws_route_table.private-vpc-route.id
-  subnet_id      = aws_subnet.private-subnet.id
+  cidr_block = var.cidr_block
+  public_subnet_cidr = local.public-subnet
+  private_subnet_cidr = local.private-subnet
+  common_tags = local.common_tags
 }
 
 resource "aws_security_group" "allow_ssh_ansible" {
   name        = "Allow SSH"
   description = "Allow SSH inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
+  vpc_id      = module.vpc.main-vpc-id
 
   ingress {
     description = "Allow SSH"
@@ -112,7 +37,7 @@ resource "aws_security_group" "allow_ssh_ansible" {
 resource "aws_instance" "ansible-host" {
   ami           = "ami-006dcf34c09e50022"
   instance_type = "t3.micro"
-  subnet_id     = aws_subnet.public-subnet.id
+  subnet_id     = module.vpc.public-subnet-id
 
   associate_public_ip_address = true
 
@@ -149,7 +74,7 @@ resource "aws_key_pair" "generated_key" {
 resource "aws_instance" "wazuh-host" {
   ami           = "ami-006dcf34c09e50022"
   instance_type = "t3.medium"
-  subnet_id     = aws_subnet.private-subnet.id
+  subnet_id     = module.vpc.private-subnet-id
   key_name      = aws_key_pair.generated_key.key_name
 
   tags = local.common_tags
@@ -158,7 +83,7 @@ resource "aws_instance" "wazuh-host" {
 resource "aws_security_group" "allow_ssh_wazuh" {
   name        = "allow_tls"
   description = "Allow SSH from Ansible Host"
-  vpc_id      = aws_vpc.main-vpc.id
+  vpc_id      = module.vpc.main-vpc-id
 
   ingress {
     description     = "Allow SSH"
