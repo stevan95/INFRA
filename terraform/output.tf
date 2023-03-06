@@ -1,4 +1,4 @@
 output "private_key" {
-  value     = tls_private_key.wazuh-ssh.private_key_pem
+  value     = module.wazuh-indexer.private-key
   sensitive = true
 }

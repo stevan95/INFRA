@@ -80,3 +80,49 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private-vpc-route.id
   subnet_id      = aws_subnet.private-subnet.id
 }
+
+resource "aws_security_group" "security_group_ansible" {
+  name        = "Ansible-SG"
+  description = var.description
+  vpc_id      = aws_vpc.main-vpc.id
+
+  ingress {
+    description = var.description
+    from_port   = var.port
+    to_port     = var.port
+    protocol    = "tcp"
+    cidr_blocks = tolist(var.allow_all)
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.wazuh_tags
+}
+
+resource "aws_security_group" "security_group_wazuh" {
+  name        = "Wazuh-SG"
+  description = var.description
+  vpc_id      = aws_vpc.main-vpc.id
+
+  ingress {
+    description = var.description
+    from_port   = var.port
+    to_port     = var.port
+    protocol    = "tcp"
+    security_groups = [aws_security_group.security_group_ansible.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.wazuh_tags
+}
