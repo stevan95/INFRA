@@ -15,7 +15,7 @@ RUN mkdir templates
 COPY app/templates/ ./templates/
 COPY --from=builder /go/app/main .
 
-EXPOSE 80
+EXPOSE 8080
 
 USER 1000:1000
 
