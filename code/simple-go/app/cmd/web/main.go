@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-const portNumber = ":8080"
+const portNumber = ":80"
 
 // main is the main function
 func main() {
