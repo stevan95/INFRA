@@ -1,0 +1,49 @@
+---
+  - name: Ansible wazuh indexer deployment 
+    gather_facts: false
+    become: yes
+    become_user: root
+    hosts: wazuh_indexer
+
+    tasks:
+      - name: Update the apt cache 
+        ansible.builtin.yum:
+          update_cache: yes
+
+      - name: Install docker
+        ansible.builtin.yum:
+          name: docker
+          state: latest
+        notify: Start docker
+      
+      - name: Start service docker
+        ansible.builtin.service:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Install pip
+        ansible.builtin.yum:
+          name: python-pip
+          state: present
+
+      - name: Copy docker deamon configuration file
+        ansible.builtin.copy:
+          src: ./conf-files/docker/deamon.json
+          dest: /etc/docker/deamon.json
+          owner: root
+          group: root
+          mode: '0644'
+        notify: Restart docker
+
+      - name: Test if docker is installed properly
+        ansible.builtin.shell: docker run --name test -d alpine:latest
+
+      - name: Remove test container
+        ansible.builtin.shell: docker rm --force test
+
+    handlers:
+      - name: Restart docker
+        ansible.builtin.service:
+          name: docker
+          state: restarted
