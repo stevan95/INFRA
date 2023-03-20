@@ -9,39 +9,37 @@ resource "aws_vpc" "main-vpc" {
   tags = var.common_tags
 }
 
-resource "aws_subnet" "private-subnet" {
+resource "aws_subnet" "subnets" {
+  count = length(var.all_subnets)
   vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = var.private_subnet_cidr
+  cidr_block = var.all_subnets[count.index]
 
-  availability_zone = data.aws_availability_zones.available.names[0]
-
-  tags = var.common_tags
-}
-
-resource "aws_subnet" "public-subnet" {
-  vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = var.public_subnet_cidr
-
-  availability_zone = data.aws_availability_zones.available.names[1]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = var.common_tags
 }
 
 resource "aws_internet_gateway" "public-gateway" {
-  vpc_id = aws_vpc.main-vpc.id
+  count = var.enable_internet_gateway ? 1 : 0
+
+  vpc_id = aws_vpc.main-vpc.id 
 
   tags = var.common_tags
 }
 
 resource "aws_eip" "nat-gateway-eip" {
+  count = var.enable_nat_gateway ? 1 : 0
+
   vpc = true
 
   tags = var.common_tags
 }
 
 resource "aws_nat_gateway" "nat-gateway" {
-  allocation_id = aws_eip.nat-gateway-eip.id
-  subnet_id     = aws_subnet.public-subnet.id
+  count = var.enable_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat-gateway-eip[0].id
+  subnet_id     = aws_subnet.subnets[0].id
 
   depends_on = [aws_internet_gateway.public-gateway]
 
@@ -49,36 +47,44 @@ resource "aws_nat_gateway" "nat-gateway" {
 }
 
 resource "aws_route_table" "public-vpc-route" {
+  count = var.enable_internet_gateway ? 1 : 0
   vpc_id = aws_vpc.main-vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.public-gateway.id
+    gateway_id = aws_internet_gateway.public-gateway[0].id
   }
 
   tags = var.common_tags
 }
 
 resource "aws_route_table" "private-vpc-route" {
+  count = var.enable_nat_gateway ? 1 : 0
+
   vpc_id = aws_vpc.main-vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat-gateway.id
+    gateway_id = aws_nat_gateway.nat-gateway[0].id
   }
 
   tags = var.common_tags
 }
 
 resource "aws_route_table_association" "public" {
-  depends_on     = [aws_subnet.public-subnet]
-  route_table_id = aws_route_table.public-vpc-route.id
-  subnet_id      = aws_subnet.public-subnet.id
+  count = var.enable_internet_gateway ? 1 : 0
+
+  depends_on     = [aws_subnet.subnets[0]]
+  route_table_id = aws_route_table.public-vpc-route[0].id
+  subnet_id      = aws_subnet.subnets[0].id
 }
+
 resource "aws_route_table_association" "private" {
-  depends_on     = [aws_subnet.private-subnet]
-  route_table_id = aws_route_table.private-vpc-route.id
-  subnet_id      = aws_subnet.private-subnet.id
+    count = var.enable_nat_gateway ? 1 : 0
+
+  depends_on     = [aws_subnet.subnets[1]]
+  route_table_id = aws_route_table.private-vpc-route[0].id
+  subnet_id      = aws_subnet.subnets[1].id
 }
 
 resource "aws_security_group" "security_group_ansible" {

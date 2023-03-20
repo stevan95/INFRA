@@ -2,7 +2,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-module "wazuh-indexer" {
+/*module "wazuh-indexer" {
   source            = "./modules/wazuh-indexer"
   vpc-id            = module.vpc.main-vpc-id
   private-subnet-id = module.vpc.private-subnet-id
@@ -18,7 +18,7 @@ module "ansible_ec2" {
   sg-ansible-id    = module.vpc.sg-ansible-id
 
   wazuh_tags = local.wazuh_tags
-}
+}*/
 
 /*resource "aws_network_interface_sg_attachment" "sg_attachment-ansible" {
   security_group_id    = aws_security_group.allow_ssh_ansible.id
@@ -28,15 +28,17 @@ module "ansible_ec2" {
 module "vpc" {
   source = "./modules/vpc"
 
-  name                = var.name
-  port                = var.port
-  description         = var.description
-  allow_all           = var.allow_all
-  wazuh_tags          = local.wazuh_tags
-  cidr_block          = var.cidr_block
-  public_subnet_cidr  = local.public-subnet
-  private_subnet_cidr = local.private-subnet
-  common_tags         = local.common_tags
+  cidr_block              = var.cidr_block
+  all_subnets             = var.subnets
+  enable_internet_gateway = var.enable_internet_gateway
+  enable_nat_gateway = var.enable_nat_gateway
+
+  name                    = var.name
+  port                    = var.port
+  description             = var.description
+  allow_all               = var.allow_all
+  wazuh_tags              = local.wazuh_tags
+  common_tags             = local.common_tags
 }
 
 /*resource "aws_network_interface_sg_attachment" "sg_attachment-wazuh" {

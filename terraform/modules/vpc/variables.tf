@@ -2,12 +2,16 @@ variable "cidr_block" {
     type = any
 }
 
-variable "public_subnet_cidr" {
+variable "all_subnets" {
     type = any
 }
 
-variable "private_subnet_cidr" {
-    type = any
+variable "enable_internet_gateway" {
+    type = bool
+}
+
+variable "enable_nat_gateway" {
+    type = bool
 }
 
 variable "common_tags" {
