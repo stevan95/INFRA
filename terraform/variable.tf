@@ -18,7 +18,7 @@ variable "enable_nat_gateway" {
   default = false
 }
 
-/*variable "name" {
+variable "name" {
   type    = string
   default = "Allow SSH"
 }
@@ -36,4 +36,4 @@ variable "port" {
 variable "allow_all" {
   type    = list(string)
   default = ["0.0.0.0/0"]
-}*/
+}

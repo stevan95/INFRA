@@ -18,7 +18,7 @@ variable "common_tags" {
     type = any
 }
 
-/*variable "name" {
+variable "name" {
     type = any
 }
 
@@ -37,4 +37,3 @@ variable "allow_all" {
 variable "wazuh_tags" {
     type = any
 }
-*/
