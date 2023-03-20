@@ -87,7 +87,7 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.subnets[1].id
 }
 
-resource "aws_security_group" "security_group_ansible" {
+/*resource "aws_security_group" "security_group_ansible" {
   name        = "Ansible-SG"
   description = var.description
   vpc_id      = aws_vpc.main-vpc.id
@@ -131,4 +131,4 @@ resource "aws_security_group" "security_group_wazuh" {
   }
 
   tags = var.wazuh_tags
-}
+}*/
