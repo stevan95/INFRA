@@ -5,7 +5,7 @@ provider "aws" {
 module "wazuh-indexer" {
   source            = "./modules/wazuh-indexer"
   vpc-id            = module.vpc.main-vpc-id
-  private-subnet-id = module.vpc.private-subnet-id
+  private-subnet-id = module.vpc.all_subnets[1]
   sg-wazuh-id       = module.vpc.sg-wazuh-id
 
   wazuh_tags = local.wazuh_tags
@@ -14,32 +14,24 @@ module "wazuh-indexer" {
 module "ansible_ec2" {
   source           = "./modules/ansible_ec2"
   vpc-id           = module.vpc.main-vpc-id
-  public-subnet-id = module.vpc.public-subnet-id
+  public-subnet-id = module.vpc.all_subnets[0]
   sg-ansible-id    = module.vpc.sg-ansible-id
 
   wazuh_tags = local.wazuh_tags
 }
 
-/*resource "aws_network_interface_sg_attachment" "sg_attachment-ansible" {
-  security_group_id    = aws_security_group.allow_ssh_ansible.id
-  network_interface_id = aws_instance.ansible-host.primary_network_interface_id
-}*/
-
 module "vpc" {
   source = "./modules/vpc"
 
-  name                = var.name
-  port                = var.port
-  description         = var.description
-  allow_all           = var.allow_all
-  wazuh_tags          = local.wazuh_tags
-  cidr_block          = var.cidr_block
-  public_subnet_cidr  = local.public-subnet
-  private_subnet_cidr = local.private-subnet
-  common_tags         = local.common_tags
-}
+  cidr_block              = var.cidr_block
+  all_subnets             = var.subnets
+  enable_internet_gateway = var.enable_internet_gateway
+  enable_nat_gateway      = var.enable_nat_gateway
 
-/*resource "aws_network_interface_sg_attachment" "sg_attachment-wazuh" {
-  security_group_id    = aws_security_group.allow_ssh_wazuh.id
-  network_interface_id = aws_instance.wazuh-host.primary_network_interface_id
-}*/
+  name                    = var.name
+  port                    = var.port
+  description             = var.description
+  allow_all               = var.allow_all
+  wazuh_tags              = local.wazuh_tags
+  common_tags = local.common_tags
+}
