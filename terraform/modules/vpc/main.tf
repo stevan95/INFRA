@@ -9,10 +9,20 @@ resource "aws_vpc" "main-vpc" {
   tags = var.common_tags
 }
 
-resource "aws_subnet" "subnets" {
-  count = length(var.all_subnets)
+resource "aws_subnet" "public-subnets" {
+  count = length(var.public_subnets)
   vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = var.all_subnets[count.index]
+  cidr_block = var.public_subnets[count.index]
+
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = var.common_tags
+}
+
+resource "aws_subnet" "private-subnets" {
+  count = length(var.private_subnets)
+  vpc_id     = aws_vpc.main-vpc.id
+  cidr_block = var.private_subnets[count.index]
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
@@ -39,7 +49,7 @@ resource "aws_nat_gateway" "nat-gateway" {
   count = var.enable_nat_gateway ? 1 : 0
 
   allocation_id = aws_eip.nat-gateway-eip[0].id
-  subnet_id     = aws_subnet.subnets[0].id
+  subnet_id     = var.public_subnets[0].id
 
   depends_on = [aws_internet_gateway.public-gateway]
 
@@ -74,17 +84,17 @@ resource "aws_route_table" "private-vpc-route" {
 resource "aws_route_table_association" "public" {
   count = var.enable_internet_gateway ? 1 : 0
 
-  depends_on     = [aws_subnet.subnets[0]]
+  depends_on     = [aws_subnet.public-subnets]
   route_table_id = aws_route_table.public-vpc-route[0].id
-  subnet_id      = aws_subnet.subnets[0].id
+  subnet_id      = aws_subnet.public-subnets[0].id
 }
 
 resource "aws_route_table_association" "private" {
     count = var.enable_nat_gateway ? 1 : 0
 
-  depends_on     = [aws_subnet.subnets[1]]
+  depends_on     = [aws_subnet.private-subnets]
   route_table_id = aws_route_table.private-vpc-route[0].id
-  subnet_id      = aws_subnet.subnets[1].id
+  subnet_id      = aws_subnet.private-subnets[0].id
 }
 
 resource "aws_security_group" "security_group_ansible" {

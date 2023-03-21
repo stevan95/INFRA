@@ -2,8 +2,12 @@ output "main-vpc-id" {
   value = aws_vpc.main-vpc.id
 }
 
-output "all_subnets" {
-  value = aws_subnet.subnets.*.id
+output "public_subnets" {
+  value = aws_subnet.public-subnets.*.id
+}
+
+output "private_subnets" {
+  value = aws_subnet.private-subnets.*.id
 }
 
 output "sg-ansible-id" {

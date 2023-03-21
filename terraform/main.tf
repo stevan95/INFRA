@@ -2,7 +2,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-module "wazuh-indexer" {
+/*module "wazuh-indexer" {
   source            = "./modules/wazuh-indexer"
   vpc-id            = module.vpc.main-vpc-id
   private-subnet-id = module.vpc.all_subnets[1]
@@ -18,13 +18,14 @@ module "ansible_ec2" {
   sg-ansible-id    = module.vpc.sg-ansible-id
 
   wazuh_tags = local.wazuh_tags
-}
+}*/
 
 module "vpc" {
   source = "./modules/vpc"
 
   cidr_block              = var.cidr_block
-  all_subnets             = var.subnets
+  private_subnets = var.private_subnets
+  public_subnets             = var.public_subnets
   enable_internet_gateway = var.enable_internet_gateway
   enable_nat_gateway      = var.enable_nat_gateway
 

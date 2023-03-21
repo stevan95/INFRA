@@ -2,7 +2,11 @@ variable "cidr_block" {
     type = any
 }
 
-variable "all_subnets" {
+variable "private_subnets" {
+    type = any
+}
+
+variable "public_subnets" {
     type = any
 }
 

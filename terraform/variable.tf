@@ -3,9 +3,14 @@ variable "cidr_block" {
   default = "10.0.0.0/16"
 }
 
-variable "subnets" {
+variable "public_subnets" {
   type    = list(any)
-  default = ["10.0.0.0/24", "10.0.1.0/24"]
+  default = ["10.0.0.0/24"]
+}
+
+variable "private_subnets" {
+  type    = list(any)
+  default = ["10.0.1.0/24"]
 }
 
 variable "enable_internet_gateway" {
@@ -15,7 +20,7 @@ variable "enable_internet_gateway" {
 
 variable "enable_nat_gateway" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "name" {

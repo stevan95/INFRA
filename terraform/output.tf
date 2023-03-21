@@ -1,4 +1,4 @@
-output "private_key" {
+/*output "private_key" {
   value     = module.wazuh-indexer.private-key
   sensitive = true
-}
+}*/
