@@ -1,0 +1,131 @@
+---
+  - name: Ansible wazuh indexer deployment 
+    gather_facts: false
+    become: yes
+    become_user: root
+    hosts: wazuh_indexer
+
+    tasks:
+      - name: Update the apt cache 
+        ansible.builtin.yum:
+          update_cache: yes
+
+      - name: Install docker
+        ansible.builtin.yum:
+          name: docker
+          state: latest
+      
+      - name: Start service docker
+        ansible.builtin.service:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Install pip module
+        ansible.builtin.yum:
+          name: python-pip
+          state: latest
+     
+      - name: Install pip docker module
+        ansible.builtin.pip:
+          name: docker-py
+
+      - name: Copy syslog configuration for docker deamon
+        ansible.builtin.copy:
+          src: ./conf-files/docker/49-docker-daemon.conf
+          dest: /etc/rsyslog.d/49-docker-daemon.conf
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Copy syslog configuration for docker containers
+        ansible.builtin.copy:
+          src: ./conf-files/docker/48-docker-containers.conf
+          dest: /etc/rsyslog.d/48-docker-containers.conf
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Restart rsyslog service
+        ansible.builtin.systemd:
+          state: restarted
+          name: rsyslog
+
+      - name: Copy docker deamon configuration file for logging driver
+        ansible.builtin.copy:
+          src: ./conf-files/docker/daemon.json
+          dest: /etc/docker/daemon.json
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Restart service cron on centos, in all cases, also issue daemon-reload to pick up config changes
+        ansible.builtin.systemd:
+          state: restarted
+          daemon_reload: true
+          name: docker
+
+      - name: Test if docker is installed properly
+        community.general.docker_container:
+          name: test
+          image: alpine:latest
+          state: present
+
+      - name: Remove test container
+        community.general.docker_container:
+          name: test
+          state: absent
+
+      - name: Remove image
+        docker_image:
+          state: absent
+          name: alpine
+          tag: latest
+
+      - name: Increase max_map_count on your host (Linux)
+        ansible.builtin.shell: sysctl -w vm.max_map_count=262144
+
+      - name: Copy wazuh certification
+        ansible.builtin.copy:
+          src: ./wazuh-certificates
+          dest: ./wazuh-certificates
+          owner: root
+          group: root
+          mode: '755'
+
+      - name: Copy wazuh-indexer.yml config file
+        ansible.builtin.copy:
+          src: ./wazuh-indexer.yml
+          dest: ./wazuh-indexer.yml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Copy file with owner and permissions
+        ansible.builtin.copy:
+          src: ./internal_users.yml
+          dest: ./internal_users.yml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run wazuh-indexer container
+        community.general.docker_container:
+          name: wazuh-indexer
+          image: wazuh/wazuh-indexer:4.3.10
+          network_mode: host
+          volumes:
+            - wazuh-indexer-data:/var/lib/wazuh-indexer
+            - ./wazuh-certificates/root-ca.pem:/usr/share/wazuh-indexer/certs/root-ca.pem
+            - ./wazuh-certificates/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.key
+            - ./wazuh-certificates/wazuh.indexer.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.pem
+            - ./wazuh-certificates/admin.pem:/usr/share/wazuh-indexer/certs/admin.pem
+            - ./wazuh-certificates/admin-key.pem:/usr/share/wazuh-indexer/certs/admin-key.pem
+            - ./wazuh.indexer.yml:/usr/share/wazuh-indexer/opensearch.yml
+            - ./internal_users.yml:/usr/share/wazuh-indexer/opensearch-security/internal_users.yml
+          env:
+            OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+          ulimits:
+            - "memlock:-1:-1"
+            - "nofile:65536:65536"
+          
