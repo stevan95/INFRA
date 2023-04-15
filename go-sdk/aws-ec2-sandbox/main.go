@@ -65,7 +65,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		if instanceID, err = EC2Management.TerminateEC2(ctx, "us-east-1", "i-0714aa09e7660c26e"); err != nil {
+		if instanceID, err = EC2Management.TerminateEC2(ctx, "us-east-1", instanceIDarg); err != nil {
 			fmt.Printf("Terminated ec2 error: %s", err)
 			os.Exit(1)
 		}
