@@ -1,14 +1,13 @@
 package main
 
 import (
+	"aws-ec2-sandbox/EC2Management"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	"aws-ec2-sandbox/EC2Management"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,6 +24,8 @@ func main() {
 		action        string
 		instanceIDarg string
 	)
+
+	ctx := context.Background()
 
 	flag.StringVar(&region, "region", "", "Define Region where you want to run your EC2 Instance.")
 	flag.StringVar(&action, "action", "", "Define which action you want to perform Create/Stop/Terminate EC2 Instance.")
@@ -47,8 +48,6 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-
-	ctx := context.Background()
 
 	switch action {
 	case "create":
@@ -101,7 +100,8 @@ func main() {
 		fmt.Print("Wrong action is specified possible values are create/start/stop/terminate.")
 	}
 
-	//GetListofAllInstances(ctx, "us-east-1")
+	GetListofAllInstances(ctx, "us-east-1")
+
 }
 
 func GetListofAllInstances(ctx context.Context, region string) {
@@ -134,16 +134,22 @@ func GetListofAllInstances(ctx context.Context, region string) {
 	}
 
 	type EC2Information struct {
-		InstanceID       string `json:"InstanceID"`
-		PrivateIPAddress string `json:"PrivateIpAddress"`
-		PrivateDnsName   string `json:"PrivateDnsName"`
-		SubnetId         string `json:"SubnetId"`
-		PublicIpAddress  string `json:"PublicIpAddress"`
-		InstanceType     string `json:"InstanceType"`
+		InstanceID       string            `json:"InstanceID"`
+		PrivateIPAddress string            `json:"PrivateIpAddress"`
+		PrivateDnsName   string            `json:"PrivateDnsName"`
+		SubnetId         string            `json:"SubnetId"`
+		PublicIpAddress  string            `json:"PublicIpAddress"`
+		InstanceType     string            `json:"InstanceType"`
+		Tags             map[string]string `json:"Tags"`
 	}
 
+	tagMap := make(map[string]string)
 	for idx, _ := range EC2List.Reservations {
 		for _, inst := range EC2List.Reservations[idx].Instances {
+
+			for _, tag := range inst.Tags {
+				tagMap[aws.ToString(tag.Key)] = aws.ToString(tag.Value)
+			}
 
 			var (
 				Private_DNS_Name  string
@@ -169,6 +175,7 @@ func GetListofAllInstances(ctx context.Context, region string) {
 				SubnetId:         *inst.SubnetId,
 				PublicIpAddress:  Public_Ip_Address,
 				InstanceType:     string(inst.InstanceType),
+				Tags:             tagMap,
 			}, "", "    ")
 			if err != nil {
 				fmt.Printf("unable to load sdk config, %v", err)
