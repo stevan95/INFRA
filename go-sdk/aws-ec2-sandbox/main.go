@@ -170,7 +170,7 @@ func GetListofAllInstances(ctx context.Context, region string) {
 
 			ec2_json, err := json.MarshalIndent(EC2Information{
 				InstanceID:       *inst.InstanceId,
-				PrivateIPAddress: *inst.PrivateDnsName,
+				PrivateIPAddress: *inst.PrivateIpAddress,
 				PrivateDnsName:   Private_DNS_Name,
 				SubnetId:         *inst.SubnetId,
 				PublicIpAddress:  Public_Ip_Address,
