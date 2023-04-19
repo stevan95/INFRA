@@ -1,17 +1,15 @@
 package S3Management
 
 import (
+	"aws-s3/ConfigS3Bucket"
 	"context"
 	"fmt"
 
-	"aws-s3/ConfigS3Bucket"
-
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-func CreateS3Bucket(ctx context.Context, s3Client *s3.Client) error {
+func DeleteS3Bucket(ctx context.Context, s3Client *s3.Client) error {
 	allBuckets, err := s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		fmt.Printf("Listing buckets error: %s", err)
@@ -24,18 +22,15 @@ func CreateS3Bucket(ctx context.Context, s3Client *s3.Client) error {
 		}
 	}
 
-	if !found {
-		_, err := s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
+	if found {
+		_, err := s3Client.DeleteBucket(ctx, &s3.DeleteBucketInput{
 			Bucket: aws.String(ConfigS3Bucket.S3Conf.BucketName),
-			CreateBucketConfiguration: &types.CreateBucketConfiguration{
-				LocationConstraint: types.BucketLocationConstraint(ConfigS3Bucket.S3Conf.RegionName),
-			},
 		})
 		if err != nil {
-			fmt.Printf("Creating bucket error: %s", err)
+			fmt.Printf("Deleting bucket error: %s", err)
 		}
 	} else {
-		return fmt.Errorf("specified bucket already exists")
+		return fmt.Errorf("bucket not exists")
 	}
 
 	return nil
