@@ -15,23 +15,25 @@ import (
 func main() {
 
 	var (
-		s3BucketName   string
-		regionName     string
-		fileToUpload   string
-		fileToDownload string
-		action         string
+		s3BucketName      string
+		regionName        string
+		fileToUpload      string
+		fileToDownload    string
+		keyObjectToDelete string
+		action            string
 	)
 
 	flag.StringVar(&s3BucketName, "bucketName", "", "Define name of your S3 bucket.")
-	flag.StringVar(&action, "action", "", "Define which action you want to perform createS3Bucket/getFile/uploadFile.")
+	flag.StringVar(&action, "action", "", "Define which action you want to perform createS3Bucket/getFile/uploadFile/deleteObject.")
 	flag.StringVar(&regionName, "region", "", "Set region name.")
 	flag.StringVar(&fileToUpload, "fileToUpload", "", "Set name of the file which you want to upload.")
 	flag.StringVar(&fileToDownload, "fileToDownload", "", "Set the neame of the file which you want to download.")
+	flag.StringVar(&keyObjectToDelete, "keyObjectToDelete", "", "Set the key of object which you want to delete.")
 	flag.Parse()
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
-			"Usage: %s -region=<aws_region> -bucketName=<bucket_name> -action=<createS3Bucket/deleteS3Bucket/getFile/uploadFile>\nOptional Args depending on action:\n-fileToUpload=<fileToUpload>\n-fileToDownload=<fileToDownload>\n", os.Args[0])
+			"Usage: %s -region=<aws_region> -bucketName=<bucket_name> -action=<createS3Bucket/deleteS3Bucket/getFile/uploadFile/deleteObject>\nOptional Args depending on action:\n-fileToUpload=<fileToUpload>\n-fileToDownload=<fileToDownload>\n-keyObjectToDelete<keyObjectToDelete>", os.Args[0])
 		flag.PrintDefaults()
 	}
 
@@ -67,7 +69,7 @@ func main() {
 
 	switch action {
 	case "createS3Bucket":
-		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, nil)
+		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, nil, nil)
 		if err = S3Management.CreateS3Bucket(ctx, s3Client); err != nil {
 			fmt.Printf("Error: %s", err)
 			os.Exit(1)
@@ -78,7 +80,7 @@ func main() {
 		}
 
 	case "uploadFile":
-		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, &fileToUpload, nil)
+		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, &fileToUpload, nil, nil)
 
 		if err = S3Management.UploadToS3Bucket(ctx, s3Client); err != nil {
 			fmt.Printf("Error: %s", err)
@@ -87,7 +89,7 @@ func main() {
 		fmt.Printf("File %s is uploaded.", ConfigS3Bucket.S3Conf.PathToUpload)
 
 	case "getFile":
-		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, &fileToDownload)
+		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, &fileToDownload, nil)
 
 		if downloaded, err = S3Management.GetFileFromS3(ctx, s3Client); err != nil {
 			fmt.Printf("Error: %s", err)
@@ -96,19 +98,25 @@ func main() {
 		fmt.Printf("Downloaded file %s.", downloaded)
 
 	case "deleteS3Bucket":
-		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, nil)
+		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, nil, nil)
 
 		if err = S3Management.DeleteS3Bucket(ctx, s3Client); err != nil {
 			fmt.Printf("Error: %s", err)
 			os.Exit(1)
 		}
+		fmt.Printf("Deleted Bucket: %s.", ConfigS3Bucket.S3Conf.BucketName)
 
-		if err == nil {
-			fmt.Printf("Deleted Bucket: %s.", ConfigS3Bucket.S3Conf.BucketName)
+	case "deleteObject":
+		ConfigS3Bucket.S3Conf.InitS3Config(s3BucketName, regionName, nil, nil, &keyObjectToDelete)
+
+		if err = S3Management.DeleteObject(ctx, s3Client); err != nil {
+			fmt.Printf("Error: %s", err)
+			os.Exit(1)
 		}
+		fmt.Printf("Deleted Object: %s.", ConfigS3Bucket.S3Conf.KeyToDelete)
 
 	default:
-		fmt.Print("Wrong action is specified possible values are create/start/stop/terminate.")
+		fmt.Print("Wrong action is specified possible values are createS3Bucket/deleteS3Bucket/getFile/uploadFile/deleteObject.")
 	}
 
 }
