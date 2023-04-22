@@ -24,7 +24,7 @@ func main() {
 	sgInfo["sgName"] = "test_sg"
 	sgInfo["sgDescription"] = "Allow SSH on port 22"
 	sgInfo["sgProtocol"] = "tcp"
-	sgInfo["sgPortsIPAddress"] = "0.0.0.0/0:22,109.245.79.198/32:8080"
+	sgInfo["sgPortsIPAddressProtocol"] = "0.0.0.0/0:22:tcp,109.245.79.198/32:8080:tcp"
 
 	vpcID, _ := CreateSecurityGroup(ctx, sgInfo)
 
@@ -75,12 +75,13 @@ func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string,
 			addr := strings.Split(addr_port, ":")[0]
 			port, _ := strconv.Atoi(strings.Split(addr_port, ":")[1])
 			port32 := int32(port)
+			protocol := strings.Split(addr_port, ":")[2]
 
 			_, err = awsClient.AuthorizeSecurityGroupIngress(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 				GroupId: securityGroup.GroupId,
 				IpPermissions: []types.IpPermission{
 					{
-						IpProtocol: aws.String(sgInfo["sgProtocol"]),
+						IpProtocol: aws.String(protocol),
 						FromPort:   aws.Int32(port32),
 						ToPort:     aws.Int32(port32),
 						IpRanges: []types.IpRange{
