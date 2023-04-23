@@ -1,0 +1,16 @@
+{
+"SG-1": 
+    {
+        "vpcName":"Default",
+        "sgName":"test_sg",
+        "sgDescription":"Allow SSH on port 22",
+        "sgPortsIPAddressProtocol":"0.0.0.0/0:22:tcp,109.245.79.198/32:8080:tcp"
+    },
+"SG-2":
+    {
+        "vpcName":"Default",
+        "sgName":"test_sg2",
+        "sgDescription":"Allow SSH on port 22",
+        "sgPortsIPAddressProtocol":"0.0.0.0/0:22:tcp,109.245.79.198/32:8080:tcp"
+    }
+}

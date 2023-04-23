@@ -2,27 +2,36 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
+	"aws-security-group/ConfigSG"
 	"aws-security-group/SGManagement"
 )
 
 func main() {
 
-	var (
-		sgInfo = make(map[string]string)
-	)
+	file, err := ioutil.ReadFile("configFile.json")
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
 
-	ctx := context.Background()
+	var sgs map[string]ConfigSG.SGDetails
+	err = json.Unmarshal(file, &sgs)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
 
-	sgInfo["vpcName"] = "Default"
-	sgInfo["sgName"] = "test_sg"
-	sgInfo["sgDescription"] = "Allow SSH on port 22"
-	sgInfo["sgProtocol"] = "tcp"
-	sgInfo["sgPortsIPAddressProtocol"] = "0.0.0.0/0:22:tcp,109.245.79.198/32:8080:tcp"
+	for sgName, sgDetails := range sgs {
+		ctx := context.Background()
 
-	vpcID, _ := SGManagement.CreateSecurityGroup(ctx, sgInfo)
+		sgID, _ := SGManagement.CreateSecurityGroup(ctx, sgDetails)
+		fmt.Printf("Security Group(%s) ID: %s\n", sgName, sgID)
+	}
 
-	fmt.Printf("VpcID: %s", vpcID)
-
+	/*rsgID, _ := SGManagement.RemoveSG(ctx, sgID)
+	fmt.Printf("Removed Security Group: %s\n", rsgID)*/
 }

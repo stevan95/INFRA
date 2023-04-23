@@ -1,6 +1,7 @@
 package SGManagement
 
 import (
+	"aws-security-group/ConfigSG"
 	"context"
 	"fmt"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string, error) {
+func CreateSecurityGroup(ctx context.Context, sgDetails ConfigSG.SGDetails) (string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
 	if err != nil {
 		fmt.Printf("unable to load sdk config, %v", err)
@@ -24,7 +25,7 @@ func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string,
 		Filters: []types.Filter{
 			{
 				Name:   aws.String("tag:Name"),
-				Values: []string{sgInfo["vpcName"]},
+				Values: []string{sgDetails.VpcName},
 			},
 		},
 	})
@@ -35,21 +36,21 @@ func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string,
 	VPCID := describe_vpc.Vpcs[0].VpcId
 
 	describe_sg, _ := awsClient.DescribeSecurityGroups(ctx, &ec2.DescribeSecurityGroupsInput{
-		GroupNames: []string{sgInfo["sgName"]},
+		GroupNames: []string{sgDetails.SgName},
 	})
 
 	var securityGroup *ec2.CreateSecurityGroupOutput
 	if describe_sg == nil || len(describe_sg.SecurityGroups) == 0 {
 		securityGroup, err = awsClient.CreateSecurityGroup(ctx, &ec2.CreateSecurityGroupInput{
-			GroupName:   aws.String(sgInfo["sgName"]),
-			Description: aws.String(sgInfo["sgDescription"]),
+			GroupName:   aws.String(sgDetails.SgName),
+			Description: aws.String(sgDetails.SgDescription),
 			VpcId:       VPCID,
 		})
 		if err != nil {
 			return "", fmt.Errorf("CreateSecurityGroup error, %s", err)
 		}
 
-		address_ports := strings.Split(sgInfo["sgPortsIPAddressProtocol"], ",")
+		address_ports := strings.Split(sgDetails.SgPortsIPAddressProtocol, ",")
 
 		for _, addr_port := range address_ports {
 
