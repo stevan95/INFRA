@@ -1,4 +1,4 @@
-package main
+package SGManagement
 
 import (
 	"context"
@@ -11,26 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
-
-func main() {
-
-	var (
-		sgInfo = make(map[string]string)
-	)
-
-	ctx := context.Background()
-
-	sgInfo["vpcName"] = "Default"
-	sgInfo["sgName"] = "test_sg"
-	sgInfo["sgDescription"] = "Allow SSH on port 22"
-	sgInfo["sgProtocol"] = "tcp"
-	sgInfo["sgPortsIPAddressProtocol"] = "0.0.0.0/0:22:tcp,109.245.79.198/32:8080:tcp"
-
-	vpcID, _ := CreateSecurityGroup(ctx, sgInfo)
-
-	fmt.Printf("VpcID: %s", vpcID)
-
-}
 
 func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
@@ -69,21 +49,23 @@ func CreateSecurityGroup(ctx context.Context, sgInfo map[string]string) (string,
 			return "", fmt.Errorf("CreateSecurityGroup error, %s", err)
 		}
 
-		address_ports := strings.Split(sgInfo["sgPortsIPAddress"], ",")
+		address_ports := strings.Split(sgInfo["sgPortsIPAddressProtocol"], ",")
+
 		for _, addr_port := range address_ports {
 
 			addr := strings.Split(addr_port, ":")[0]
-			port, _ := strconv.Atoi(strings.Split(addr_port, ":")[1])
-			port32 := int32(port)
+			port := strings.Split(addr_port, ":")[1]
 			protocol := strings.Split(addr_port, ":")[2]
+			p, _ := strconv.Atoi(port)
+			p32 := int32(p)
 
 			_, err = awsClient.AuthorizeSecurityGroupIngress(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 				GroupId: securityGroup.GroupId,
 				IpPermissions: []types.IpPermission{
 					{
 						IpProtocol: aws.String(protocol),
-						FromPort:   aws.Int32(port32),
-						ToPort:     aws.Int32(port32),
+						FromPort:   aws.Int32(p32),
+						ToPort:     aws.Int32(p32),
 						IpRanges: []types.IpRange{
 							{
 								CidrIp: aws.String(addr),
