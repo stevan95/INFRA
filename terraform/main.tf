@@ -7,8 +7,7 @@ module "ec2_wazuh_indexer" {
 
   sg_name     = "Wazuh-SG"
   description = "Allow SSH from ansible host and allow trafic on port 9200"
-  vpc_id      = module.vpc.main-vpc-id
-  use_sg_id   = true
+  vpc_id      = module.vpc.vpc_id
 
   security-group-ingress-settings = [
     {
@@ -36,7 +35,7 @@ module "ec2_wazuh_indexer" {
   ec2_configuration = {
     ami           = "ami-0ac64ad8517166fb1"
     instance_type = "t3.large"
-    subnet_id     = module.vpc.all_subnets[1]
+    subnet_id     = module.vpc.private_subnet_ids[0]
     associate_public_ip_address = false
 
   }
@@ -49,7 +48,7 @@ module "ec2_ansible" {
 
   sg_name     = "Ansible-SG"
   description = "Allow SSH from anyware"
-  vpc_id      = module.vpc.main-vpc-id
+  vpc_id      = module.vpc.vpc_id
 
   security-group-ingress-settings = [
     {
@@ -71,7 +70,7 @@ module "ec2_ansible" {
   ec2_configuration = {
     ami           = "ami-0ac64ad8517166fb1"
     instance_type = "t3.micro"
-    subnet_id     = module.vpc.all_subnets[0]
+    subnet_id     = module.vpc.public_subnet_ids[0]
     associate_public_ip_address = true
 
   }
@@ -82,10 +81,18 @@ module "ec2_ansible" {
 module "vpc" {
   source = "./modules/vpc"
 
-  cidr_block              = var.cidr_block
-  all_subnets             = var.subnets
-  enable_internet_gateway = var.enable_internet_gateway
-  enable_nat_gateway      = var.enable_nat_gateway
+  env             = "dev"
+  azs             = ["us-east-1a", "us-east-1b"]
+  private_subnets = ["10.0.0.0/19", "10.0.32.0/19"]
+  public_subnets  = ["10.0.64.0/19", "10.0.96.0/19"]
 
-  tag_name = "vpc-dev"
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+    "kubernetes.io/cluster/dev-demo"  = "owned"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb"         = 1
+    "kubernetes.io/cluster/dev-demo" = "owned"
+  }
 }

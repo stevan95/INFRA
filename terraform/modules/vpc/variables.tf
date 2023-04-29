@@ -1,19 +1,35 @@
-variable "cidr_block" {
-    type = any
+variable "env" {
+  description = "Environment name."
+  type        = string
 }
 
-variable "all_subnets" {
-    type = any
+variable "vpc_cidr_block" {
+  description = "CIDR (Classless Inter-Domain Routing)."
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
-variable "enable_internet_gateway" {
-    type = bool
+variable "azs" {
+  description = "Availability zones for subnets."
+  type        = list(string)
 }
 
-variable "enable_nat_gateway" {
-    type = bool
+variable "private_subnets" {
+  description = "CIDR ranges for private subnets."
+  type        = list(string)
 }
 
-variable "tag_name" {
-  type = string
+variable "public_subnets" {
+  description = "CIDR ranges for public subnets."
+  type        = list(string)
+}
+
+variable "private_subnet_tags" {
+  description = "Private subnet tags."
+  type        = map(any)
+}
+
+variable "public_subnet_tags" {
+  description = "Private subnet tags."
+  type        = map(any)
 }

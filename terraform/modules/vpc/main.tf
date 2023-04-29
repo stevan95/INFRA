@@ -1,94 +1,103 @@
-locals {
+resource "aws_vpc" "this" {
+  cidr_block = var.vpc_cidr_block
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
   tags = {
-    Name = var.tag_name
+    Name = "${var.env}-main"
   }
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${var.env}-igw"
+  }
 }
 
-resource "aws_vpc" "main-vpc" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = "default"
+resource "aws_subnet" "private" {
+  count = length(var.private_subnets)
 
-  tags = local.tags
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnets[count.index]
+  availability_zone = var.azs[count.index]
+
+  tags = merge(
+    { Name = "${var.env}-private-${var.azs[count.index]}" },
+    var.private_subnet_tags
+  )
 }
 
-resource "aws_subnet" "subnets" {
-  count = length(var.all_subnets)
-  vpc_id     = aws_vpc.main-vpc.id
-  cidr_block = var.all_subnets[count.index]
+resource "aws_subnet" "public" {
+  count = length(var.public_subnets)
 
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.public_subnets[count.index]
+  availability_zone = var.azs[count.index]
 
-  tags = local.tags
+  tags = merge(
+    { Name = "${var.env}-public-${var.azs[count.index]}" },
+    var.public_subnet_tags
+  )
 }
 
-resource "aws_internet_gateway" "public-gateway" {
-  count = var.enable_internet_gateway ? 1 : 0
-
-  vpc_id = aws_vpc.main-vpc.id 
-
-  tags = local.tags
-}
-
-resource "aws_eip" "nat-gateway-eip" {
-  count = var.enable_nat_gateway ? 1 : 0
-
+resource "aws_eip" "this" {
   vpc = true
 
-  tags = local.tags
+  tags = {
+    Name = "${var.env}-nat"
+  }
 }
 
-resource "aws_nat_gateway" "nat-gateway" {
-  count = var.enable_nat_gateway ? 1 : 0
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.this.id
+  subnet_id     = aws_subnet.public[0].id
 
-  allocation_id = aws_eip.nat-gateway-eip[0].id
-  subnet_id     = aws_subnet.subnets[0].id
+  tags = {
+    Name = "${var.env}-nat"
+  }
 
-  depends_on = [aws_internet_gateway.public-gateway]
-
-  tags = local.tags
+  depends_on = [aws_internet_gateway.this]
 }
 
-resource "aws_route_table" "public-vpc-route" {
-  count = var.enable_internet_gateway ? 1 : 0
-  vpc_id = aws_vpc.main-vpc.id
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this.id
+  }
+
+  tags = {
+    Name = "${var.env}-private"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.public-gateway[0].id
+    gateway_id = aws_internet_gateway.this.id
   }
 
-  tags = local.tags
-}
-
-resource "aws_route_table" "private-vpc-route" {
-  count = var.enable_nat_gateway ? 1 : 0
-
-  vpc_id = aws_vpc.main-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat-gateway[0].id
+  tags = {
+    Name = "${var.env}-public"
   }
-
-  tags = local.tags
-}
-
-resource "aws_route_table_association" "public" {
-  count = var.enable_internet_gateway ? 1 : 0
-
-  depends_on     = [aws_subnet.subnets[0]]
-  route_table_id = aws_route_table.public-vpc-route[0].id
-  subnet_id      = aws_subnet.subnets[0].id
 }
 
 resource "aws_route_table_association" "private" {
-    count = var.enable_nat_gateway ? 1 : 0
+  count = length(var.private_subnets)
 
-  depends_on     = [aws_subnet.subnets[1]]
-  route_table_id = aws_route_table.private-vpc-route[0].id
-  subnet_id      = aws_subnet.subnets[1].id
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "public" {
+  count = length(var.public_subnets)
+
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
 }
