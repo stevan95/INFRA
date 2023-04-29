@@ -1,3 +1,9 @@
+locals {
+  tags = {
+    Name = var.tag_name
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -6,7 +12,7 @@ resource "aws_vpc" "main-vpc" {
   cidr_block       = var.cidr_block
   instance_tenancy = "default"
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_subnet" "subnets" {
@@ -16,7 +22,7 @@ resource "aws_subnet" "subnets" {
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_internet_gateway" "public-gateway" {
@@ -24,7 +30,7 @@ resource "aws_internet_gateway" "public-gateway" {
 
   vpc_id = aws_vpc.main-vpc.id 
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_eip" "nat-gateway-eip" {
@@ -32,7 +38,7 @@ resource "aws_eip" "nat-gateway-eip" {
 
   vpc = true
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_nat_gateway" "nat-gateway" {
@@ -43,7 +49,7 @@ resource "aws_nat_gateway" "nat-gateway" {
 
   depends_on = [aws_internet_gateway.public-gateway]
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_route_table" "public-vpc-route" {
@@ -55,7 +61,7 @@ resource "aws_route_table" "public-vpc-route" {
     gateway_id = aws_internet_gateway.public-gateway[0].id
   }
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_route_table" "private-vpc-route" {
@@ -68,7 +74,7 @@ resource "aws_route_table" "private-vpc-route" {
     gateway_id = aws_nat_gateway.nat-gateway[0].id
   }
 
-  tags = var.common_tags
+  tags = local.tags
 }
 
 resource "aws_route_table_association" "public" {
@@ -85,50 +91,4 @@ resource "aws_route_table_association" "private" {
   depends_on     = [aws_subnet.subnets[1]]
   route_table_id = aws_route_table.private-vpc-route[0].id
   subnet_id      = aws_subnet.subnets[1].id
-}
-
-resource "aws_security_group" "security_group_ansible" {
-  name        = "Ansible-SG"
-  description = var.description
-  vpc_id      = aws_vpc.main-vpc.id
-
-  ingress {
-    description = var.description
-    from_port   = var.port
-    to_port     = var.port
-    protocol    = "tcp"
-    cidr_blocks = tolist(var.allow_all)
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = var.wazuh_tags
-}
-
-resource "aws_security_group" "security_group_wazuh" {
-  name        = "Wazuh-SG"
-  description = var.description
-  vpc_id      = aws_vpc.main-vpc.id
-
-  ingress {
-    description = var.description
-    from_port   = var.port
-    to_port     = var.port
-    protocol    = "tcp"
-    security_groups = [aws_security_group.security_group_ansible.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = var.wazuh_tags
 }

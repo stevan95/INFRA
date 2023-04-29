@@ -1,23 +1,82 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"
 }
 
-module "wazuh-indexer" {
-  source            = "./modules/wazuh-indexer"
-  vpc-id            = module.vpc.main-vpc-id
-  private-subnet-id = module.vpc.all_subnets[1]
-  sg-wazuh-id       = module.vpc.sg-wazuh-id
+module "ec2_wazuh_indexer" {
+  source = "./modules/ec2"
 
-  wazuh_tags = local.wazuh_tags
+  sg_name     = "Wazuh-SG"
+  description = "Allow SSH from ansible host and allow trafic on port 9200"
+  vpc_id      = module.vpc.main-vpc-id
+  use_sg_id   = true
+
+  security-group-ingress-settings = [
+    {
+      "port"              = "22"
+      "protocol"          = "tcp"
+      "cidr_block"        = ""
+      "sg_id" = module.ec2_ansible.sg-id
+    },
+    {
+      "port"              = "9200"
+      "protocol"          = "tcp"
+      "cidr_block"        = "0.0.0.0/0"
+      "sg_id" = ""
+    }
+  ]
+
+  security-group-egress-settings = [
+    {
+      "port"              = "0"
+      "protocol"          = "-1"
+      "cidr_block"        = "0.0.0.0/0"
+    }
+  ]
+
+  ec2_configuration = {
+    ami           = "ami-0ac64ad8517166fb1"
+    instance_type = "t3.large"
+    subnet_id     = module.vpc.all_subnets[1]
+    associate_public_ip_address = false
+
+  }
+
+  tag_name = "Wazuh"
 }
 
-module "ansible_ec2" {
-  source           = "./modules/ansible_ec2"
-  vpc-id           = module.vpc.main-vpc-id
-  public-subnet-id = module.vpc.all_subnets[0]
-  sg-ansible-id    = module.vpc.sg-ansible-id
+module "ec2_ansible" {
+  source = "./modules/ec2"
 
-  wazuh_tags = local.wazuh_tags
+  sg_name     = "Ansible-SG"
+  description = "Allow SSH from anyware"
+  vpc_id      = module.vpc.main-vpc-id
+
+  security-group-ingress-settings = [
+    {
+      "port"              = "22"
+      "protocol"          = "tcp"
+      "cidr_block"        = "0.0.0.0/0"
+      "sg_id" = ""
+    }
+  ]
+
+  security-group-egress-settings = [
+    {
+      "port"              = "0"
+      "protocol"          = "-1"
+      "cidr_block"        = "0.0.0.0/0"
+    }
+  ]
+
+  ec2_configuration = {
+    ami           = "ami-0ac64ad8517166fb1"
+    instance_type = "t3.micro"
+    subnet_id     = module.vpc.all_subnets[0]
+    associate_public_ip_address = true
+
+  }
+
+  tag_name = "Ansible"
 }
 
 module "vpc" {
@@ -28,10 +87,5 @@ module "vpc" {
   enable_internet_gateway = var.enable_internet_gateway
   enable_nat_gateway      = var.enable_nat_gateway
 
-  name                    = var.name
-  port                    = var.port
-  description             = var.description
-  allow_all               = var.allow_all
-  wazuh_tags              = local.wazuh_tags
-  common_tags = local.common_tags
+  tag_name = "vpc-dev"
 }
