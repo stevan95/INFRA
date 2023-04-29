@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "ec2_wazuh_indexer" {
-  source = "./modules/ec2"
+  source = "../../modules/ec2"
 
   sg_name     = "Wazuh-SG"
   description = "Allow SSH from ansible host and allow trafic on port 9200"
@@ -44,7 +44,7 @@ module "ec2_wazuh_indexer" {
 }
 
 module "ec2_ansible" {
-  source = "./modules/ec2"
+  source = "../../modules/ec2"
 
   sg_name     = "Ansible-SG"
   description = "Allow SSH from anyware"
@@ -79,12 +79,12 @@ module "ec2_ansible" {
 }
 
 module "vpc" {
-  source = "./modules/vpc"
+  source = "../../modules/vpc"
 
   env             = "dev"
-  azs             = ["us-east-1a", "us-east-1b"]
-  private_subnets = ["10.0.0.0/19", "10.0.32.0/19"]
-  public_subnets  = ["10.0.64.0/19", "10.0.96.0/19"]
+  azs             = ["us-east-1a"]
+  private_subnets = ["10.0.0.0/19"]
+  public_subnets  = ["10.0.64.0/19"]
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
