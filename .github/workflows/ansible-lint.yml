@@ -13,7 +13,7 @@ jobs:
       #consider it as workflow which belongs to separate concurency group
       group: ansible-lint-{{ github.ref }}
       cancel-in-progress: true
-    runs-on: general-micro-arm
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
