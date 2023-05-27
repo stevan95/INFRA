@@ -37,7 +37,7 @@ jobs:
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
           if [[ -n $files ]]; then
             echo "Ansible lint checking...."
-            python3 -m pip install --upgrade pip
-            pip3 install ansible ansible-lint==6.8.2 jc
+            python3 -m pip install --user ansible
+            pip3 install ansible ansible-lint jc
             ansible-lint --force-color $files
           fi
