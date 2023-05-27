@@ -44,10 +44,10 @@
           group: root
           mode: '755'
 
-      - name: Copy wazuh-indexer.yaml config file
+      - name: Copy wazuh.indexer.yaml config file
         ansible.builtin.copy:
-          src: ./wazuh-indexer.yaml
-          dest: ./wazuh-indexer.yaml
+          src: ./wazuh.indexer.yaml
+          dest: ./wazuh.indexer.yaml
           owner: root
           group: root
           mode: '0644'

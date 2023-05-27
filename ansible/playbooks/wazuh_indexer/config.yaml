@@ -1,16 +1,16 @@
 nodes:
   # Wazuh indexer server nodes
   indexer:
-    - name: wazuh.indexer
+    - name: demo.indexer
       ip: 10.0.1.42
 
   # Wazuh server nodes
   # Use node_type only with more than one Wazuh manager
   server:
-    - name: wazuh.manager
+    - name: demo.manager
       ip: 10.0.1.43
 
   # Wazuh dashboard node
   dashboard:
-    - name: wazuh.dashboard
+    - name: demo.dashboard
       ip: 10.0.1.44

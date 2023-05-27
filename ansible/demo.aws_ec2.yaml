@@ -9,4 +9,6 @@ hostnames:
     prefix: ''
 
 groups:
-  wazuh-indexer: "'Wazuh' in tags.Name" 
+  wazuh-indexer: "'Wazuh-indexer' in tags.Name"
+  wazuh-manager: "'Wazuh-manager' in tags.Name" 
+  wazuh-dashboard: "'Wazuh-dashboard' in tags.Name" 

@@ -31,8 +31,8 @@
        
       - name: Copy wazuh manager conf file
         ansible.builtin.copy:
-          src: ./wazuh-manager.conf
-          dest: ./wazuh-manager.conf
+          src: ./wazuh_manager.conf
+          dest: ./wazuh_manager.conf
           owner: root
           group: root
           mode: '0644'
@@ -57,7 +57,7 @@
             - ./wazuh-certificates/root-ca.pem:/etc/ssl/root-ca.pem
             - ./wazuh-certificates/wazuh.manager.pem:/etc/ssl/filebeat.pem
             - ./wazuh-certificates/wazuh.manager-key.pem:/etc/ssl/filebeat.key
-            - ./wazuh-manager.conf:/wazuh-config-mount/etc/ossec.conf
+            - ./wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf
           env:
             INDEXER_URL: "https://wazuh.indexer:9200"
             INDEXER_USERNAME: "admin"
