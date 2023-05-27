@@ -38,6 +38,6 @@ jobs:
           if [[ -n $files ]]; then
             echo "Ansible lint checking...."
             python3 -m pip install --upgrade pip
-            pip3 install ansible ansible-lint=6.8.2 jc
+            pip3 install ansible ansible-lint==6.8.2 jc
             ansible-lint --force-color $files
           fi
