@@ -82,7 +82,7 @@ module "vpc" {
   source = "../../modules/vpc"
 
   env             = "dev"
-  azs             = ["us-east-1a"]
+  azs             = ["us-west-2a"]
   private_subnets = ["10.0.0.0/19"]
   public_subnets  = ["10.0.64.0/19"]
 

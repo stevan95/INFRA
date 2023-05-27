@@ -1,0 +1,12 @@
+plugin: amazon.aws.aws_ec2
+
+regions:
+- us-west-2
+
+hostnames:
+  - name: 'private-ip-address'
+    separator: '_'
+    prefix: ''
+
+groups:
+  wazuh-indexer: "'Wazuh' in tags.Name" 
