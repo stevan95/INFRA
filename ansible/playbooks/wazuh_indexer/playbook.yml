@@ -1,0 +1,81 @@
+---
+  - name: Ansible wazuh indexer deployment 
+    gather_facts: false
+    become: yes
+    become_user: root
+    hosts: wazuh_indexer
+    roles:
+      - docker
+
+    tasks:
+      - name: Increase max_map_count on your host (Linux)
+        ansible.builtin.shell: sysctl -w vm.max_map_count=262144
+
+      - name: Create destination directory if not exists
+        ansible.builtin.file:
+          path: "/wazuh-certificates"
+          state: directory
+          mode: '0755'
+
+      - name: Copy wazuh certification
+        ansible.builtin.copy:
+          src: "{{ item }}" 
+          dest: ./wazuh-certificates/
+          owner: root
+          group: root
+          mode: '0644'
+        with_items:
+          - "./wazuh-certificates/admin.pem"
+          - "./wazuh-certificates/admin-key.pem"
+          - "./wazuh-certificates/root-ca.key"
+          - "./wazuh-certificates/root-ca.pem"
+          - "./wazuh-certificates/wazuh.dashboard-key.pem"
+          - "./wazuh-certificates/wazuh.dashboard.pem"
+          - "./wazuh-certificates/wazuh.indexer-key.pem"
+          - "./wazuh-certificates/wazuh.indexer.pem"
+          - "./wazuh-certificates/wazuh.manager-key.pem"
+          - "./wazuh-certificates/wazuh.manager.pem"
+
+      - name: Copy wazuh certification
+        ansible.builtin.copy:
+          src: ./wazuh-certificates
+          dest: ./wazuh-certificates
+          owner: root
+          group: root
+          mode: '755'
+
+      - name: Copy wazuh.indexer.yaml config file
+        ansible.builtin.copy:
+          src: ./wazuh.indexer.yaml
+          dest: ./wazuh.indexer.yaml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Copy file with owner and permissions
+        ansible.builtin.copy:
+          src: ./internal_users.yaml
+          dest: ./internal_users.yaml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run wazuh-indexer container
+        community.general.docker_container:
+          name: wazuh-indexer
+          image: wazuh/wazuh-indexer:4.3.10
+          network_mode: host
+          volumes:
+            - wazuh-indexer-data:/var/lib/wazuh-indexer
+            - ./wazuh-certificates/root-ca.pem:/usr/share/wazuh-indexer/certs/root-ca.pem
+            - ./wazuh-certificates/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.key
+            - ./wazuh-certificates/wazuh.indexer.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.pem
+            - ./wazuh-certificates/admin.pem:/usr/share/wazuh-indexer/certs/admin.pem
+            - ./wazuh-certificates/admin-key.pem:/usr/share/wazuh-indexer/certs/admin-key.pem
+            - ./wazuh.indexer.yaml:/usr/share/wazuh-indexer/opensearch.yml
+            - ./internal_users.yaml:/usr/share/wazuh-indexer/opensearch-security/internal_users.yml
+          env:
+            OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+          ulimits:
+            - "memlock:-1:-1"
+            - "nofile:65536:65536"   
