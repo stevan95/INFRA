@@ -15,30 +15,30 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu
 
-steps:
-  - uses: actions/checkout@v3
-    with:
-      #GitHub Actions performs a shallow clone, fetching only the most recent commit, but setting fetch-depth to 0 overrides 
-      #this behavior and fetches the entire history.
-      fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          #GitHub Actions performs a shallow clone, fetching only the most recent commit, but setting fetch-depth to 0 overrides 
+          #this behavior and fetches the entire history.
+          fetch-depth: 0
 
-  - name: Get changed files
-    id: changed-files
-    uses: dorny/paths-filter@v2
-    with:
-      list-files: "shell"
-      filters: |
-        changes:
-          - added|modified: 'ansible/**/*.yml'
+      - name: Get changed files
+        id: changed-files
+        uses: dorny/paths-filter@v2
+        with:
+          list-files: "shell"
+          filters: |
+            changes:
+              - added|modified: 'ansible/**/*.yml'
 
-  - name: ansible-lint
-    if: steps.changed-files.outputs.changes == 'true'
-    #steps.changed-files.outputs.changes_files => variable with the name ${FILTER_NAME}_files. It will contain a list of all files matching the filter
-    run: |
-      files=$(echo ${{ steps.changed-files.outputs.changes_files }})
-      if [[ -n $files ]]; then
-        echo "Ansible lint checking...."
-        python3 -m pip install --upgrade pip
-        pip3 install ansible ansible-lint=6.8.2 jc
-        ansible-lint --force-color $files
-      fi
+      - name: ansible-lint
+        if: steps.changed-files.outputs.changes == 'true'
+        #steps.changed-files.outputs.changes_files => variable with the name ${FILTER_NAME}_files. It will contain a list of all files matching the filter
+        run: |
+          files=$(echo ${{ steps.changed-files.outputs.changes_files }})
+          if [[ -n $files ]]; then
+            echo "Ansible lint checking...."
+            python3 -m pip install --upgrade pip
+            pip3 install ansible ansible-lint=6.8.2 jc
+            ansible-lint --force-color $files
+          fi
