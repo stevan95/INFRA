@@ -1,3 +1,4 @@
+#https://documentation.wazuh.com/current/user-manual/certificates.html
 nodes:
   # Wazuh indexer server nodes
   indexer:

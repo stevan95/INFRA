@@ -1,0 +1,75 @@
+- name: Update the yum cache
+  ansible.builtin.yum:
+    update_cache: yes
+
+- name: Install docker
+  ansible.builtin.yum:
+    name: docker
+    state: latest
+
+- name: Start service docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Install pip module
+  ansible.builtin.yum:
+    name: python-pip
+    state: latest
+
+- name: Install pip docker module
+  ansible.builtin.pip:
+    name: docker-py
+
+- name: Copy syslog configuration for docker deamon
+  ansible.builtin.copy:
+    src: ./files/49-docker-daemon.conf
+    dest: /etc/rsyslog.d/49-docker-daemon.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy syslog configuration for docker containers
+  ansible.builtin.copy:
+    src: ./files/48-docker-containers.conf
+    dest: /etc/rsyslog.d/48-docker-containers.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart rsyslog service
+  ansible.builtin.systemd:
+    state: restarted
+    name: rsyslog
+
+- name: Copy docker deamon configuration file for logging driver
+  ansible.builtin.copy:
+    src: ./files/daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart docker service
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: true
+    name: docker
+
+- name: Test if docker is installed properly
+  community.general.docker_container:
+    name: test
+    image: alpine:latest
+    state: present
+
+- name: Remove test container
+  community.general.docker_container:
+    name: test
+    state: absent
+
+- name: Remove image
+  docker_image:
+    state: absent
+    name: alpine
+    tag: latest
