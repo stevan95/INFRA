@@ -1,0 +1,70 @@
+---
+  - name: Ansible wazuh indexer deployment
+    gather_facts: false
+    become: yes
+    become_user: root
+    hosts: wazuh_server
+    roles:
+      - docker
+
+    tasks:
+      - name: Increase max_map_count on your host (Linux)
+        ansible.builtin.shell: sysctl -w vm.max_map_count=262144
+
+      - name: Create a directory if it does not exist
+        ansible.builtin.file:
+          path: /home/ec2_user/wazuh-certificates
+          state: directory
+          mode: '0755'
+
+      - name: Copy wazuh certification
+        ansible.builtin.copy:
+          src: "{{ item }}" 
+          dest: ./wazuh-certificates/
+          owner: root
+          group: root
+          mode: '0644'
+        with_items:
+          - "./wazuh-certificates/root-ca.pem"
+          - "./wazuh-certificates/wazuh.manager-key.pem"
+          - "./wazuh-certificates/wazuh.manager.pem"
+       
+      - name: Copy wazuh manager conf file
+        ansible.builtin.copy:
+          src: ./wazuh-manager.conf
+          dest: ./wazuh-manager.conf
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run wazuh-server container
+        community.general.docker_container:
+          name: wazuh-server
+          image: wazuh/wazuh-manager:4.3.10
+          network_mode: host
+          volumes:
+            - wazuh_api_configuration:/var/ossec/api/configuration
+            - wazuh_etc:/var/ossec/etc
+            - wazuh_logs:/var/ossec/logs
+            - wazuh_queue:/var/ossec/queue
+            - wazuh_var_multigroups:/var/ossec/var/multigroups
+            - wazuh_integrations:/var/ossec/integrations
+            - wazuh_active_response:/var/ossec/active-response/bin
+            - wazuh_agentless:/var/ossec/agentless
+            - wazuh_wodles:/var/ossec/wodles
+            - filebeat_etc:/etc/filebeat
+            - filebeat_var:/var/lib/filebeat
+            - ./wazuh-certificates/root-ca.pem:/etc/ssl/root-ca.pem
+            - ./wazuh-certificates/wazuh.manager.pem:/etc/ssl/filebeat.pem
+            - ./wazuh-certificates/wazuh.manager-key.pem:/etc/ssl/filebeat.key
+            - ./wazuh-manager.conf:/wazuh-config-mount/etc/ossec.conf
+          env:
+            INDEXER_URL: "https://wazuh.indexer:9200"
+            INDEXER_USERNAME: "admin"
+            INDEXER_PASSWORD: "SecretPassword"
+            FILEBEAT_SSL_VERIFICATION_MODE: "full"
+            SSL_CERTIFICATE_AUTHORITIES: "/etc/ssl/root-ca.pem"
+            SSL_CERTIFICATE: "/etc/ssl/filebeat.pem"
+            SSL_KEY: "/etc/ssl/filebeat.key"
+            API_USERNAME: "wazuh-wui"
+            API_PASSWORD: "MyS3cr37P450r.*-"

@@ -1,0 +1,67 @@
+---
+  - name: Ansible wazuh dashboard deployment
+    gather_facts: false
+    become: yes
+    become_user: root
+    hosts: wazuh-dashboard
+    roles:
+      - docker
+
+    tasks:
+      - name: Increase max_map_count on your host (Linux)
+        ansible.builtin.shell: sysctl -w vm.max_map_count=262144
+
+      - name: Create a directory if it does not exist
+        ansible.builtin.file:
+          path: /home/ec2_user/wazuh-certificates
+          state: directory
+          mode: '0755'
+
+      - name: Copy wazuh certification
+        ansible.builtin.copy:
+          src: "{{ item }}" 
+          dest: ./wazuh-certificates/
+          owner: root
+          group: root
+          mode: '0644'
+        with_items:
+          - "./wazuh-certificates/root-ca.pem"
+          - "./wazuh-certificates/wazuh.dashboard-key.pem"
+          - "./wazuh-certificates/wazuh.dashboard.pem"
+       
+      - name: Copy wazuh dashboard conf file
+        ansible.builtin.copy:
+          src: ./opensearch_dashboards.yaml
+          dest: ./opensearch_dashboards.yaml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Copy wazuh dashboard conf file2
+        ansible.builtin.copy:
+          src: ./wazuh.yaml
+          dest: ./wazuh.yaml
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run wazuh-dashboard container
+        community.general.docker_container:
+          name: wazuh-dashboard
+          image: wazuh/wazuh-dashboard:4.3.10
+          network_mode: host
+          volumes:
+            - ./wazuh-certificates/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem
+            - ./wazuh-certificates/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem
+            - ./wazuh-certificates/root-ca.pem:/usr/share/wazuh-dashboard/certs/root-ca.pem
+            - ./opensearch_dashboards.yaml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+            - ./wazuh.yaml:/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+          env:
+            INDEXER_USERNAME: admin
+            INDEXER_PASSWORD: SecretPassword
+            WAZUH_API_URL: https://wazuh.manager
+            DASHBOARD_USERNAME: kibanaserver
+            DASHBOARD_PASSWORD: kibanaserver
+            SSL_KEY: "/etc/ssl/filebeat.key"
+            API_USERNAME: "wazuh-wui"
+            API_PASSWORD: "MyS3cr37P450r.*-"
