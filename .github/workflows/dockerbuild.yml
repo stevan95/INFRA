@@ -50,7 +50,7 @@ jobs:
           DF="${CONTEXT}/Dockerfile"
 
           [ ! -n "$IMAGENAME"] && echo "Image name is not specified!" && exit 1
-          [ ! -d "$BASE/$APPNAME" ] && "App containing Dockerfile is not specified"
+          [ ! -d "$BASE/$APPNAME" ] && "App containing Dockerfile is not specified or not exists"
   
           echo "$IMAGENAME" >> $GITHUB_OUTPUT
           echo "$DF" >> $GITHUB_OUTPUT
@@ -62,6 +62,6 @@ jobs:
           
           cd "${CONTEXT}"
           docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${DOCKER_HUB_SECRET}"
-          docker build -t "${DOCKER_HUB_USERNAME}"/"${APPNAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2` .
-          docker push "${DOCKER_HUB_USERNAME}"/"${APPNAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
+          docker build -t "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2` .
+          docker push "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
            
