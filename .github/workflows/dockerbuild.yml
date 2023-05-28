@@ -1,0 +1,67 @@
+name: Docker Image CI
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - code
+  workflow_dispatch:
+    inputs:
+      APPNAME: 
+        description: |
+          App folder location which contain dockerfile
+        required: true
+        type: string
+      IMAGENAME:
+        description: |
+          Name of the docker image which you want to build
+        required: false
+        type: string
+jobs:
+  docker-build-manual:
+    enviroment: dev
+    env:
+      DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB_SECRET }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+    name: "bild and push image by workflow_dispatch"
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prepare image tag
+        id: image
+        run: |
+          TIMESTAMP="$(date -u +%Y-%m-%d-%H%M)"
+          GIT_SHA="$(git --git-dir=INFRA/.git rev-parse --short=7 HEAD)"
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=${GIT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Ensure input variables are correct and build/push image
+        id: configure
+        run: |
+          APPNAME=${{ github.event.inputs.APPNAME }}
+          IMAGENAME=${{ github.event.inputs.IMAGENAME }}
+          BASE="INFRA/code"
+          CONTEXT="build"
+          DF="${CONTEXT}/Dockerfile"
+
+          [ ! -n "$IMAGENAME"] && echo "Image name is not specified!" && exit 1
+          [ ! -d "$BASE/$APPNAME" ] && "App containing Dockerfile is not specified"
+  
+          echo "$IMAGENAME" >> $GITHUB_OUTPUT
+          echo "$DF" >> $GITHUB_OUTPUT
+        
+          cp -av "${BASE}/${APPNAME}/." build/
+          mkdir -p "build/config"
+      
+          echo "${steps.image.outputs.GIT_SHA},${steps.image.outputs.TIMESTAMP}" >> "${CONTEXT}/config/Manifest"
+          
+          cd "${CONTEXT}"
+          docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${DOCKER_HUB_SECRET}"
+          docker build -t "${DOCKER_HUB_USERNAME}"/"${APPNAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2` .
+          docker push "${DOCKER_HUB_USERNAME}"/"${APPNAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
+           
