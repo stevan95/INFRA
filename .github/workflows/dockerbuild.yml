@@ -52,11 +52,5 @@ jobs:
           [ ! -n "$IMAGENAME" ] && echo "Image name is not specified!" && exit 1
           [ ! -d "$BASE/$APPNAME" ] && echo "App containing Dockerfile is not specified or does not exist" && exit 1
   
-          echo "$IMAGENAME" >> $GITHUB_OUTPUT
-          echo "$DF" >> $GITHUB_OUTPUT
-        
-          cp -av "${BASE}/${APPNAME}/." build/
-          mkdir -p "build/config"
-      
-          
+         
            
