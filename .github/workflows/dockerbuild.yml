@@ -19,7 +19,7 @@ on:
         type: string
 jobs:
   docker-build-manual:
-    enviroment: dev
+    environment: dev
     env:
       DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB_SECRET }}
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
