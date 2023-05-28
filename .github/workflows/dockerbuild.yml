@@ -49,8 +49,8 @@ jobs:
           CONTEXT="build"
           DF="${CONTEXT}/Dockerfile"
 
-          [ ! -n "$IMAGENAME"] && echo "Image name is not specified!" && exit 1
-          [ ! -d "$BASE/$APPNAME" ] && "App containing Dockerfile is not specified or not exists"
+          [ ! -n "$IMAGENAME" ] && echo "Image name is not specified!" && exit 1
+          [ ! -d "$BASE/$APPNAME" ] && echo "App containing Dockerfile is not specified or does not exist" && exit 1
   
           echo "$IMAGENAME" >> $GITHUB_OUTPUT
           echo "$DF" >> $GITHUB_OUTPUT
@@ -58,5 +58,10 @@ jobs:
           cp -av "${BASE}/${APPNAME}/." build/
           mkdir -p "build/config"
       
-
+          echo "${steps.image.outputs.GIT_SHA},${steps.image.outputs.TIMESTAMP}" >> "${CONTEXT}/config/Manifest"
+          
+          cd "${CONTEXT}"
+          docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${DOCKER_HUB_SECRET}"
+          docker build -t "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2` .
+          docker push "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
            
