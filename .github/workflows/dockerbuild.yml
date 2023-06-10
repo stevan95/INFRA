@@ -15,6 +15,9 @@ jobs:
       IAM_ROLE: ${{ secrets.IAM_ROLE }}
       ECR_REPO: ${{ secrets.ECR_REPO }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
 
       - name: Configure AWS Credentials
