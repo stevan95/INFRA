@@ -21,7 +21,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: ${IAM_ROLE}
+          role-to-assume: arn:aws:iam::022865527167:role/ecr_readwrite_role
 
       - name: Checkout Repo
         uses: actions/checkout@v3
