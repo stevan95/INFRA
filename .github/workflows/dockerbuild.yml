@@ -9,12 +9,11 @@ on:
         type: string
 jobs:
   docker-build-manual:
-    if: github.event_name == 'workflow_dispatch
+    name: "build and push image using workflow_dispatch"
     environment: dev
     env:
       IAM_ROLE: ${{ secrets.IAM_ROLE }}
       ECR_REPO: ${{ secrets.ECR_REPO }}
-    name: "bild and push image by workflow_dispatch"
     runs-on: ubuntu-latest
     steps:
 
