@@ -7,13 +7,17 @@ on:
           App folder location which contain dockerfile
         required: true
         type: string
+      ECR_REPO: 
+        description: |
+          ECR repo for docker image
+        required: true
+        type: string
 jobs:
   docker-build-manual:
     name: "build and push image using workflow_dispatch"
     environment: dev
     env:
       IAM_ROLE: ${{ secrets.IAM_ROLE }}
-      ECR_REPO: ${{ secrets.ECR_REPO }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -23,7 +27,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::022865527167:role/GitHubActionRole
+          role-to-assume: ${{ env.IAM_ROLE }}
           role-session-name: ecrsession
           
       - name: Login to Amazon ECR
@@ -46,6 +50,7 @@ jobs:
       - name: Build and push image to docker repo
         run: |
           APPNAME=${{ github.event.inputs.APPNAME }}
+          ECR_REPO=${{ github.event.inputs.ECR_REPO }}
           BASE="INFRA/code"
           CONTEXT="build"
           DF="${CONTEXT}/Dockerfile"
