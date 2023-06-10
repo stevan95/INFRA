@@ -25,6 +25,10 @@ jobs:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::022865527167:role/GitHubActionRole
           role-session-name: ecrsession
+          
+      - name: Login to Amazon ECR
+        id: ${{ ECR_REPO }}
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Checkout Repo
         uses: actions/checkout@v3
