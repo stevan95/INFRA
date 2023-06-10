@@ -19,12 +19,12 @@ jobs:
       id-token: write
       contents: read
     steps:
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::022865527167:role/GitHubActionRole
+          role-to-assume: ${IAM_ROLE}
+          role-session-name: ecrsession
 
       - name: Checkout Repo
         uses: actions/checkout@v3
