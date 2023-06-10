@@ -1,10 +1,5 @@
 name: Docker Image CI
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - code
   workflow_dispatch:
     inputs:
       APPNAME: 
@@ -12,21 +7,23 @@ on:
           App folder location which contain dockerfile
         required: true
         type: string
-      IMAGENAME:
-        description: |
-          Name of the docker image which you want to build
-        required: false
-        type: string
 jobs:
   docker-build-manual:
+    if: github.event_name == 'workflow_dispatch
     environment: dev
     env:
-      DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB_SECRET }}
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      IAM_ROLE: ${{ secrets.IAM_ROLE }}
+      ECR_REPO: ${{ secrets.ECR_REPO }}
     name: "bild and push image by workflow_dispatch"
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${IAM_ROLE}
+
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -43,12 +40,10 @@ jobs:
       - name: Build and push image to docker repo
         run: |
           APPNAME=${{ github.event.inputs.APPNAME }}
-          IMAGENAME=${{ github.event.inputs.IMAGENAME }}
           BASE="INFRA/code"
           CONTEXT="build"
           DF="${CONTEXT}/Dockerfile"
 
-          [ ! -n "$IMAGENAME" ] && echo "Image name is not specified!" && exit 1
           [ ! -d "$BASE/$APPNAME" ] && echo "App containing Dockerfile is not specified or does not exist" && exit 1
         
           cp -av "${BASE}/${APPNAME}/." build/
@@ -57,7 +52,7 @@ jobs:
           echo "${{ steps.image.outputs.GIT_SHA }},${{ steps.image.outputs.TIMESTAMP }}" >> "${CONTEXT}/config/Manifest"
           
           cd "${CONTEXT}"
-          echo "${DOCKER_HUB_SECRET}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
-          docker build -t "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2` .
-          docker push "${DOCKER_HUB_USERNAME}"/"${IMAGENAME}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
+          docker build -t $APPNAME .
+          docker tag simple-app:latest "${ECR_REPO}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
+          docker push "${ECR_REPO}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
            
