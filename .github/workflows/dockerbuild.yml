@@ -27,7 +27,7 @@ jobs:
           role-session-name: ecrsession
           
       - name: Login to Amazon ECR
-        id: ${{ ECR_REPO }}
+        id: ecrlogin
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Checkout Repo
