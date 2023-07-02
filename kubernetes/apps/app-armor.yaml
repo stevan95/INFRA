@@ -11,6 +11,6 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: kubernetes/app-armor
+    path: kubernetes/apparmor
     repoURL: https://github.com/stevan95/INFRA.git
     targetRevision: master
