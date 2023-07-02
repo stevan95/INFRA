@@ -29,6 +29,7 @@ module "eks" {
 
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
+      key_name       = "stevan_key"
     }
   }
 
@@ -49,13 +50,14 @@ module "eks" {
       to_port                       = 9443
       source_cluster_security_group = true
       description                   = "Allow access from control plane to webhook port of AWS load balancer controller"
-    }
+    },
   }
 
   tags = {
     Environment = "staging"
   }
 }
+
 
 data "aws_eks_cluster" "default" {
   name = module.eks.cluster_id
