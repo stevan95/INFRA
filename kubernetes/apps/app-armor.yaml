@@ -1,23 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: app-armor
+  name: apparmor
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: apparmor
+    namespace: default
     server: https://kubernetes.default.svc
   project: default
   source:
     path: kubernetes/app-armor
-    repoURL: https://github.com/stevan95/INFRA
-    targetRevision: HEAD
-  syncPolicy:
-    automated:
-      prune: false
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-      - CreateNamespace=true
+    repoURL: https://github.com/stevan95/INFRA.git
+    targetRevision: master
