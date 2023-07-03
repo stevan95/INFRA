@@ -14,12 +14,22 @@ jobs:
         with:
           path: INFRA
 
+      - name: Get changed files
+        id: changed-files
+        uses: dorny/paths-filter@v2
+        with:
+          list-files: "shell"
+          filters: |
+            changes:
+              - added|modified: 'code/**/**'
+
       - name: Get app name
         id: get_app_name
         run: |
           echo ${GITHUB_WORKSPACE}
           echo ${GITHUB_EVENT_PATH}
-          echo ${{ github.event.inputs.path }}
+          files=$(echo ${{ steps.changed-files.outputs.changes_files }})
+          echo $files
           exit 1
 
       - name: Build an image from Dockerfile
