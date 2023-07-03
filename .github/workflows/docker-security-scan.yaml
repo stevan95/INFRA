@@ -12,19 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          path: INFRA
 
       - name: Get app name
         id: get_app_name
         run: |
-          APP_NAME=${{ github.event.inputs.path }}
-          APP_NAME=$(dirname $FILE_PATH | awk -F'/' '{print $(NF-1)}')
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          FILE_PATH=${{ github.event.inputs.path }}
+          FOLDER_NAME=$(basename $(dirname $FILE_PATH))
+          echo "APP_NAME=$FOLDER_NAME" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
         run: |
-          cd INFRA/code/${{ steps.get_folder_name.outputs.folder_name }}
-          docker build -t ${{ steps.get_folder_name.outputs.folder_name }}:sec-test .
+          cd INFRA/code/${{ steps.get_app_name.outputs.folder_name }}
+          docker build -t ${{ steps.get_app_name.outputs.folder_name }}:sec-test .
 
       - name: Install Trivy
         run: |
@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          trivy image ${{ steps.get_folder_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
+          trivy image ${{ steps.get_app_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
