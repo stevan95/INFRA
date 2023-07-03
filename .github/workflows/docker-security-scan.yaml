@@ -17,9 +17,7 @@ jobs:
       - name: Build an image from Dockerfile
         run: |
           cd INFRA/code/simple-app/
-          path=`pwd`
-          basename $path
-          docker build -t `basename $path`:sec-test .
+          docker build -t `basename pwd`:sec-test .
 
       - name: Install Trivy
         run: |
@@ -31,8 +29,8 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          pwd
-          trivy image `basename $path`:sec-test -format sarif -o trivy-results.sarif
+          cd INFRA/code/simple-app/
+          trivy image `basename pwd`:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
