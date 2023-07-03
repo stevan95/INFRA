@@ -34,7 +34,7 @@ jobs:
 
           cat changed.txt
 
-          IMAGE_NAME=`cat changed.txt` | cut -d'/' -f2 | uniq
+          IMAGE_NAME=`cat changed.txt | cut -d'/' -f2 | uniq`
           echo $IMAGE_NAMES
           exit 1
 
