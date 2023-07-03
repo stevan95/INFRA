@@ -17,14 +17,15 @@ jobs:
       - name: Build an image from Dockerfile
         run: |
           cd INFRA/code/simple-app/
-          image_name=`pwd`
-          build="docker build -t ${image_name##*/}:sec-test ."
+          path=`pwd`
+          image_name=${image_name##*/}
+          build="docker build -t ${image_name}:sec-test ."
           eval $build
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${image_name##*/}:sec-test'
+          image-ref: "${image_name}"
           format: 'sarif'
           exit-code: '1'
           ignore-unfixed: true
