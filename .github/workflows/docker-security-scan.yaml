@@ -31,6 +31,7 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
+          pwd
           trivy image `basename $path`:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
