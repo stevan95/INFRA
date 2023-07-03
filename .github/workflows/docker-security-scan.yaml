@@ -21,16 +21,14 @@ jobs:
           basename $path
           docker build -t `basename $path`:sec-test .
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "${image_name}"
-          format: 'sarif'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-          output: 'trivy-results.sarif'
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m).deb
+          sudo dpkg -i trivy_$(uname -s)_$(uname -m).deb
+
+      - name: Run Trivy Image Scan
+        run: |
+          trivy image `basename $path`:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
