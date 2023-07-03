@@ -19,6 +19,7 @@ jobs:
           cd INFRA/code/simple-app/
           path=`pwd`
           image_name=`${path##*/}`
+          echo $image_name
           docker build -t ${image_name}:sec-test .
 
       - name: Run Trivy vulnerability scanner
