@@ -24,7 +24,7 @@ jobs:
               - added|modified: 'code/**/**'
 
       - name: Get app name
-        id: get_app_name
+        id: get_apps_name
         run: |
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
 
@@ -32,9 +32,7 @@ jobs:
             echo $file >> changed.txt
           done
 
-          cat changed.txt
-
-          IMAGE_NAME=`cat changed.txt | cut -d'/' -f2 | uniq`
+          IMAGE_NAMES=`cat changed.txt | cut -d'/' -f2 | uniq`
           echo $IMAGE_NAMES
           exit 1
 
