@@ -17,8 +17,8 @@ jobs:
       - name: Get app name
         id: get_app_name
         run: |
-          FILE_PATH="${{ github.workspace }}/${{ github.event.inputs.path }}"
-          FOLDER_NAME=$(basename $(dirname $FILE_PATH))
+          FILE_PATH="${GITHUB_WORKSPACE}/$(dirname $GITHUB_EVENT_PATH)"
+          FOLDER_NAME=$(basename $FILE_PATH)
           echo "APP_NAME=$FOLDER_NAME" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
