@@ -5,7 +5,7 @@ on:
       - main
   pull_request:
 jobs:
-  build:
+  security-image-scan:
     name: Build
     runs-on: ubuntu-20.04
     steps:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          cd /code/simple-app/
+          cd INFRA/code/simple-app/
           image_name=`pwd`
           docker build -t  . ${image_name##*/}:sec-test
 
