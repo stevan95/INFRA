@@ -14,10 +14,16 @@ jobs:
         with:
           path: INFRA
 
+      - name: Identify Changed Folder
+        id: changed_folder
+        run: |
+          CHANGED_FOLDER=$(dirname "${{ github.event.head_commit.added | join('\n') }}" | cut -d/ -f2)
+          echo "::set-output name=folder::$CHANGED_FOLDER"
+
       - name: Build an image from Dockerfile
         run: |
-          cd INFRA/code/simple-app/
-          docker build -t `basename pwd`:sec-test .
+          cd INFRA/code/${{ steps.changed_folder.outputs.folder }}
+          docker build -t ${{ steps.changed_folder.outputs.folder }}:sec-test .
 
       - name: Install Trivy
         run: |
@@ -29,8 +35,7 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          cd INFRA/code/simple-app/
-          trivy image `basename pwd`:sec-test -format sarif -o trivy-results.sarif
+          trivy image ${{ steps.changed_folder.outputs.folder }}:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
