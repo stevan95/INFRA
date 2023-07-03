@@ -18,9 +18,8 @@ jobs:
         run: |
           cd INFRA/code/simple-app/
           path=`pwd`
-          image_name=`${path##*/}`
-          echo $image_name
-          docker build -t ${image_name}:sec-test .
+          basename $path
+          docker build -t `basename $path`:sec-test .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
