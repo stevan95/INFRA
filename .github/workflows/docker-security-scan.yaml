@@ -1,8 +1,8 @@
-name: build
+name: security-scan-image
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 jobs:
   build:
@@ -33,4 +33,3 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           sarif_file: 'trivy-results.sarif'
-          
