@@ -17,6 +17,7 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
+          pwd
           cd simple-app
           docker build -t simple-app:sec-test .
 
