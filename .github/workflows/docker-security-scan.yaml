@@ -4,12 +4,10 @@ on:
     branches:
       - main
 
-permissions: write-all
-
 jobs:
   security-image-scan:
     name: Docker Image Security Scan
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
