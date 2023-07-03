@@ -1,8 +1,8 @@
 name: security-scan-image
 on:
   push:
-    branches:
-      - main
+    branches: ['main']
+    paths: ['code/**']
 
 jobs:
   security-image-scan:
@@ -12,14 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          path: code
           fetch-depth: 0
+
+      - name: Get app name
+        id: get_app_name
+        run: |
+          APP_NAME=${{ github.event.inputs.path }}
+          APP_NAME=$(dirname $FILE_PATH | awk -F'/' '{print $(NF-1)}')
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
         run: |
-          pwd
-          cd simple-app
-          docker build -t simple-app:sec-test .
+          cd INFRA/code/${{ steps.get_folder_name.outputs.folder_name }}
+          docker build -t ${{ steps.get_folder_name.outputs.folder_name }}:sec-test .
 
       - name: Install Trivy
         run: |
@@ -31,7 +36,7 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          trivy image simple-app:sec-test -format sarif -o trivy-results.sarif
+          trivy image ${{ steps.get_folder_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
