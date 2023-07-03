@@ -26,15 +26,15 @@ jobs:
       - name: Get app name
         id: get_app_name
         run: |
-          echo ${GITHUB_WORKSPACE}
-          echo ${GITHUB_EVENT_PATH}
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
 
           for file in $files; do
             echo $file >> changed.txt
           done
 
-          IMAGE_NAME=`echo $changed.txt` | cut -d'/' -f2 | uniq
+          cat changed.txt
+
+          IMAGE_NAME=`cat changed.txt` | cut -d'/' -f2 | uniq
           echo $IMAGE_NAMES
           exit 1
 
