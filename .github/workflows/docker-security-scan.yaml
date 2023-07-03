@@ -29,7 +29,8 @@ jobs:
           echo ${GITHUB_WORKSPACE}
           echo ${GITHUB_EVENT_PATH}
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
-          echo $files
+          IMAGE_NAME=`echo $files` | cut -d'/' -f2 | uniq
+          echo $IMAGE_NAME
           exit 1
 
       - name: Build an image from Dockerfile
