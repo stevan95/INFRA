@@ -29,8 +29,13 @@ jobs:
           echo ${GITHUB_WORKSPACE}
           echo ${GITHUB_EVENT_PATH}
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
-          IMAGE_NAME=`echo $files` | cut -d'/' -f2 | uniq
-          echo $IMAGE_NAME
+
+          for file in $files; do
+            echo $file >> changed.txt
+          done
+
+          IMAGE_NAME=`echo $changed.txt` | cut -d'/' -f2 | uniq
+          echo $IMAGE_NAMES
           exit 1
 
       - name: Build an image from Dockerfile
