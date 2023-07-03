@@ -1,4 +1,4 @@
-#COMMENT1
+#COMMENT
 FROM golang:1.16-alpine AS builder
 
 WORKDIR app

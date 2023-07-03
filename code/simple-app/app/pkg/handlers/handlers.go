@@ -15,7 +15,7 @@ type Repository struct {
 	App *config.AppConfig
 }
 
-// NewRepo creates a new repository
+// NewRepo creates a new repositorys
 func NewRepo(a *config.AppConfig) *Repository {
 	return &Repository{
 		App: a,
