@@ -3,8 +3,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-permissions: read-all|write-all
+
+permissions: write-all
+
 jobs:
   security-image-scan:
     name: Docker Image Security Scan
