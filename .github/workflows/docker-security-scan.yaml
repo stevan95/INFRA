@@ -19,7 +19,7 @@ jobs:
         run: |
           echo ${GITHUB_WORKSPACE}
           echo ${GITHUB_EVENT_PATH}
-          cat /home/runner/work/_temp/_github_workflow/event.json
+          echo ${{ github.event.inputs.path }}
           exit 1
 
       - name: Build an image from Dockerfile
