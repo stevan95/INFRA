@@ -24,7 +24,6 @@ jobs:
               - added|modified: 'code/**/**'
 
       - name: Get app name
-        id: get_apps_name
         run: |
           files=$(echo ${{ steps.changed-files.outputs.changes_files }})
 
@@ -33,20 +32,15 @@ jobs:
           done
 
           IMAGE_NAMES=`cat changed.txt | cut -d'/' -f2 | uniq`
-          echo "IMAGE_NAMES=$IMAGE_NAMES" >> $GITHUB_OUTPUT
+          echo "IMAGE_NAMES=$IMAGE_NAMES" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
         run: |
-          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}"
-          IMAGES=`echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}"`
-          echo $IMAGES
-
-          for IMAGE in $IMAGES; do
-            echo $IMAGE
+          for IMAGE in $IMAGE_NAMES; do
             cd INFRA/code/$IMAGE
             docker build -t ${IMAGE}:sec-test .
           done
-          
+
       - name: Install Trivy
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
@@ -57,7 +51,9 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          trivy image ${{ steps.get_app_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
+          for IMAGE in $IMAGE_NAMES; do
+            trivy image ${{ steps.get_app_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
+          done
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
