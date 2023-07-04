@@ -39,9 +39,10 @@ jobs:
         run: |
           echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}" > images
           IMAGES=`cat images`
-          
+          echo $IMAGES
 
           for IMAGE in $IMAGES; do
+            echo $IMAGE
             cd INFRA/code/$IMAGE
             docker build -t ${IMAGE}:sec-test .
           done
