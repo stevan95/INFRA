@@ -33,14 +33,17 @@ jobs:
           done
 
           IMAGE_NAMES=`cat changed.txt | cut -d'/' -f2 | uniq`
-          echo $IMAGE_NAMES
-          exit 1
+          echo "$IMAGE_NAMES" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
         run: |
-          cd INFRA/code/${{ steps.get_app_name.outputs.folder_name }}
-          docker build -t ${{ steps.get_app_name.outputs.folder_name }}:sec-test .
+          IMAGES=${{ steps.get_app_name.outputs.IMAGE_NAMES }}
+          for IMAGE in $IMAGES; do
+            cd INFRA/code/$IMAGE
+            docker build -t ${IMAGE}:sec-test .
+          done
 
+          exit 1
       - name: Install Trivy
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
