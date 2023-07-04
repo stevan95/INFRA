@@ -46,8 +46,7 @@ jobs:
             cd INFRA/code/$IMAGE
             docker build -t ${IMAGE}:sec-test .
           done
-
-          exit 1
+          
       - name: Install Trivy
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
