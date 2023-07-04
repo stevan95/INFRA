@@ -37,7 +37,10 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          IMAGES=${{ steps.get_app_name.outputs.IMAGE_NAMES }}
+          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}" > images
+          IMAGES=`cat images`
+          
+
           for IMAGE in $IMAGES; do
             cd INFRA/code/$IMAGE
             docker build -t ${IMAGE}:sec-test .
