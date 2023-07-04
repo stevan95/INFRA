@@ -18,6 +18,6 @@ COPY --from=builder /go/app/main .
 
 EXPOSE 8080
 
-USER 1000:1000
+#USER 1000:1000
 
 ENTRYPOINT ["./main"]
