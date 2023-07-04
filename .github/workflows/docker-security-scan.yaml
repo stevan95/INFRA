@@ -51,10 +51,9 @@ jobs:
 
       - name: Run Trivy Image Scan
         run: |
-          test=$(docker images --format "{{.Repository}}")
-          echo "$test"
           echo $IMAGE_NAMES
           for IMAGE in $IMAGE_NAMES; do
+            echo "trivy image --severity HIGH,CRITICAL ${IMAGE}:sec-test -format sarif -o trivy-results.sarif"
             trivy image --severity HIGH,CRITICAL ${IMAGE}:sec-test -format sarif -o trivy-results.sarif
           done
 
