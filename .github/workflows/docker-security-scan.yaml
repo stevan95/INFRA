@@ -33,12 +33,12 @@ jobs:
           done
 
           IMAGE_NAMES=`cat changed.txt | cut -d'/' -f2 | uniq`
-          echo "IMAGE_NAMES=$IMAGE_NAMES" >> $GITHUB_ENV
+          echo "IMAGE_NAMES=$IMAGE_NAMES" >> $GITHUB_OUTPUT
 
       - name: Build an image from Dockerfile
         run: |
-          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}" > images
-          IMAGES=`cat images`
+          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}
+          IMAGES=`echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}"`
           echo $IMAGES
 
           for IMAGE in $IMAGES; do
