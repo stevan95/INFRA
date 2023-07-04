@@ -33,7 +33,7 @@ jobs:
           done
 
           IMAGE_NAMES=`cat changed.txt | cut -d'/' -f2 | uniq`
-          echo "$IMAGE_NAMES" >> $GITHUB_ENV
+          echo "IMAGE_NAMES=$IMAGE_NAMES" >> $GITHUB_ENV
 
       - name: Build an image from Dockerfile
         run: |
