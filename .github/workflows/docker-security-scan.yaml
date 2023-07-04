@@ -52,7 +52,7 @@ jobs:
       - name: Run Trivy Image Scan
         run: |
           for IMAGE in $IMAGE_NAMES; do
-            trivy image ${{ steps.get_app_name.outputs.folder_name }}:sec-test -format sarif -o trivy-results.sarif
+            trivy image --severity HIGH,CRITICAL ${IMAGE}:sec-test -format sarif -o trivy-results.sarif
           done
 
       - name: Upload Trivy scan results to GitHub Security tab
