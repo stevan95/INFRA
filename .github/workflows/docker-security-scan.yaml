@@ -37,8 +37,8 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}
-          IMAGES="${{ steps.get_app_name.outputs.IMAGE_NAMES }}"
+          echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}"
+          IMAGES=`echo "${{ steps.get_app_name.outputs.IMAGE_NAMES }}"`
           echo $IMAGES
 
           for IMAGE in $IMAGES; do
