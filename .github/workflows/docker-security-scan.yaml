@@ -54,7 +54,7 @@ jobs:
         run: |
           echo $IMAGE_NAMES
           for IMAGE in $IMAGE_NAMES; do
-            trivy image --severity HIGH,CRITICAL ${IMAGE}:sec-test --format sarif --output trivy-results.sarif
+            trivy image ${IMAGE}:sec-test --format sarif --output trivy-results.sarif
           done
 
       - name: Upload Trivy scan results to GitHub Security tab
