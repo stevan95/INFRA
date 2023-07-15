@@ -1,0 +1,35 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-admission-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: golang-admission-controller
+  template:
+    metadata:
+      labels:
+        app: golang-admission-controller
+      name: golang-admission-controller
+    spec:
+      containers:
+      - image: 022865527167.dkr.ecr.us-east-1.amazonaws.com/golang-admission-controller
+        name: golang-admission-controller
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: golang-admission-controller-service
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app: golang-admission-controller
