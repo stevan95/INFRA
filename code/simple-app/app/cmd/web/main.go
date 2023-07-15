@@ -17,7 +17,7 @@ var app config.AppConfig
 const portNumber = ":8080"
 
 // To make session variable accessable in all main package. Important note is to set session := scs.New()
-// to session = scs.New() to make these two variables same
+// To session = scs.New() to make these two variables same
 var session *scs.SessionManager
 
 // main is the main function
