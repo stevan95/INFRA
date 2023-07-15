@@ -12,7 +12,7 @@ FROM alpine:3.17
 WORKDIR app
 
 RUN mkdir templates && mkdir cert
-COPY app/templates/ ./templates/
+COPY app/template/ ./template/
 COPY app/cert ./cert/
 COPY --from=builder /go/app/imageTagAdmissionController .
 
