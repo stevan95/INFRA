@@ -64,6 +64,6 @@ jobs:
           
           cd "${CONTEXT}"
           docker build -t $APPNAME .
-          docker tag simple-app:latest "${ECR_REPO}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
+          docker tag "${APPNAME}":latest "${ECR_REPO}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
           docker push "${ECR_REPO}":`cat config/Manifest | cut -d',' -f1`.`cat config/Manifest | cut -d',' -f2`
            
