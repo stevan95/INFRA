@@ -24,7 +24,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: golang-admission-controller-service
+  name: golang-admission-controller
 spec:
   ports:
   - port: 443
