@@ -13,7 +13,7 @@ webhooks:
   clientConfig:
     service:
       namespace: default
-      name: golang-admission-controller-service
+      name: golang-admission-controller
       path: "/"
     caBundle: CA_BUNDLE
   admissionReviewVersions: ["v1"]
