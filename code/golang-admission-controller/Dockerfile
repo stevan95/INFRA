@@ -20,4 +20,4 @@ EXPOSE 8443
 
 USER 1000:1000
 
-ENTRYPOINT ["./imageTagAdmissionController.exe"]
+ENTRYPOINT ["./imageTagAdmissionController"]
