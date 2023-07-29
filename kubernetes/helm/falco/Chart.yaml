@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+name: falco-service
+appVersion: "1.0"
+description: "Falco service helmchart"
+version: 1.0.0
+type: application
+dependencies:
+  - name: falco-service
+    repository: https://falcosecurity.github.io/charts
+    version: 3.4.1

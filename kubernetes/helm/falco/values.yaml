@@ -1,0 +1,109 @@
+---
+falco-service:
+  image:
+    tag: "0.35.1"
+
+  namespaceOverride: "falco"
+
+  serviceAccount:
+    create: true
+    name: "falco-sa"
+    annotations:
+      - eks.amazonaws.com/role-arn: arn:aws:iam::022865527167:role/kubernetes-falco-role
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+  tty: true
+
+  customRules:
+    open_shell_container.yaml: |-
+      - macro: container
+        condition: container.id != host
+
+      - macro: spawned_process
+        condition: evt.type = execve and evt.dir=<
+
+      - rule: run_shell_in_container
+        desc: a shell was spawned by a non-shell program in a container. Container entrypoints are excluded.
+        condition: container and proc.name = bash and spawned_process and proc.pname exists and not proc.pname in (bash, docker)
+        output: "Shell spawned in a container other than entrypoint (user=%user.name container_id=%container.id container_name=%container.name shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)"
+        priority: WARNING
+
+    write_to_binary.yaml: |-
+      - macro: open_write
+        condition: >
+          (evt.type=open or evt.type=openat) and
+          fd.typechar='f' and
+          (evt.arg.flags contains O_WRONLY or
+          evt.arg.flags contains O_RDWR or
+          evt.arg.flags contains O_CREAT or
+          evt.arg.flags contains O_TRUNC)    
+
+      - macro: package_mgmt_binaries
+        condition: proc.name in (dpkg, dpkg-preconfigu, rpm, rpmkey, yum)
+
+      - macro: bin_dir
+        condition: fd.directory in (/bin, /sbin, /usr/bin, /usr/sbin)
+
+      - rule: write_binary_dir
+        desc: an attempt to write to any file below a set of binary directories
+        condition: evt.dir = < and open_write and not proc.name in (package_mgmt_binaries) and bin_dir
+        output: "File below a known binary directory opened for writing (user=%user.name command=%proc.cmdline file=%fd.name)"
+        priority: WARNING
+
+  falco:
+    rules_file:
+      - /etc/falco/k8s_audit_rules.yaml
+      - /etc/falco/rules.d
+    plugins:
+      - name: k8saudit-eks
+        library_path: libk8saudit-eks.so
+        init_config:
+          shift: 10
+          polling_interval: 10
+          use_async: false
+          buffer_size: 500
+        open_params: "{CLUSTER_NAME}"
+      - name: json
+        library_path: libjson.so
+        init_config: ""
+    load_plugins: [k8saudit-eks, json]
+
+  falcosidekick:
+    enabled: true
+
+  driver:
+    enabled: false
+  collectors:
+    enabled: false
+
+controller:
+  kind: deployment
+  deployment:
+    replicas: 1
+
+  falcoctl:
+    indexes:
+    - name: falcosecurity
+      url: https://falcosecurity.github.io/falcoctl/index.yaml
+    artifact:
+      install:
+        enabled: true
+      follow:
+        enabled: true
+    config:
+      artifact:
+        allowedTypes:
+          - plugin
+          - rulesfile
+        install:
+          resolveDeps: false
+          refs: [k8saudit-rules:0, k8saudit-eks:0, json:0]
+        follow:
+          refs: [k8saudit-rules:0]
