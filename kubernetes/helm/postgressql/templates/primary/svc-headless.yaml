@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.primary.svcHeadless.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels: 
+    {{- if .Values.primary.labels }}
+    {{- toYaml .Values.primary.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.primary.annotations }}
+  annotations:
+    {{- if .Values.primary.svcHeadless.annotations }}
+    {{- toYaml .Values.primary.labels | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: tcp-postgresql
+    port: {{ .Values.primary.svcHeadless.port }}
+    targetPort: tcp-postgresql
+  selector:
+  {{- toYaml .Values.primary.labels | nindent 4 }}

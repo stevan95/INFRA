@@ -4,8 +4,13 @@ resource "helm_release" "argocd" {
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
   namespace        = "argocd"
+  version          = "5.41.2"
   create_namespace = true
-  version          = "3.35.4"
+
+  set {
+    name = "server.service.type"
+    value = "LoadBalancer"
+  }
 
   values = [file("values-argocd.yaml")]
 }

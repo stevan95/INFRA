@@ -1,0 +1,61 @@
+apiVersion: {{ .Values.global.kubeVersion | quote }}
+kind: StatefulSet
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.global.namespace }}
+  labels: 
+    {{- if .Values.primary.labels }}
+    {{- toYaml .Values.primary.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.primary.annotations }}
+  annotations:
+    {{- if .Values.primary.annotations }}
+    {{- toYaml .Values.primary.annotations | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  replicas: 1
+  serviceName: {{ .Values.primary.svcHeadless.name }}
+  {{- if .Values.primary.updateStrategy }}
+  updateStrategy: 
+    {{- toYaml .Values.primary.updateStrategy | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- toYaml .Values.primary.labels | nindent 6 }}
+  template:
+    metadata:
+      name: {{ .Chart.Name }}-{{ .Values.primary.name }}
+      labels:
+        {{- if .Values.primary.labels }}
+        {{- toYaml .Values.primary.labels | nindent 8 }}
+        {{- end }}
+      {{- if .Values.primary.annotations }}
+      annotations:
+        {{- if .Values.primary.annotations }}
+        {{- toYaml .Values.primary.annotations | nindent 8 }}
+      {{- end }}
+  {{- end }}
+    spec:
+      {{- if .Values.primary.serviceAccount }}
+      serviceAccountName: {{ .Values.primary.serviceAccount }}
+      {{- end }}
+      {{- if .Values.primary.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.primary.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: postgresql
+        image: {{ .Values.global.image.repository }}
+        imagePullPolicy: {{ .Values.global.image.pullPolicy | quote }}
+        {{- if .Values.global.image.containerSecurityContext.enabled }}
+        securityContext: {{- omit .Values.global.image.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+        {{- end }}
+        env:
+        - name: POSTGRESQL_PORT_NUMBER
+          value: {{ .Values.global.image.portNumber | quote }}
+        - name: POSTGRESQL_VOLUME_DIR
+          value: {{ .Values.primary.persistence.mountPath | quote }}
+        {{- if .Values.primary.persistence.mountPath }}
+        - name: PGDATA
+          value: {{ .Values.global.postgresqlDataDir | quote }}
+        {{- end }}

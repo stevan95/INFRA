@@ -1,0 +1,58 @@
+global:
+  kubeVersion: apps/v1
+  namespace: default
+  image:
+    repository: bitnami/postgresql
+    tag: 12.15.0
+    pullPolicy: IfNotPresent
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsGroup: 0
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    portNumber: 5432
+  postgresqlDataDir: /bitnami/postgresql/data
+  storageClass: "cloud-ssd"
+  #NEXT
+  auth:
+    enablePostgresUser: true
+    postgresPassword: ""
+    username: ""
+    password: ""
+    database: ""
+    replicationUsername: repl_user
+    replicationPassword: ""
+    existingSecret: ""
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
+    usePasswordFiles: false
+
+primary:
+  name: write
+  labels: 
+    app.kubernetes.io/component: primary
+    name: postgres
+  annotations: {}
+  updateStrategy: 
+    type: OnDelete
+  svcHeadless:
+    name: postgres-headless
+    annotations:
+      service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    port: 5432
+  serviceAccount: postgres-svc
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  persistence:
+    enabled: true
+    mountPath: /bitnami/postgresql
+    accessModes:
+      - ReadWriteOnce
+    size: 4Gi
