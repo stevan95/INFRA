@@ -23,3 +23,12 @@ module "vnet" {
   ]
 
 }
+
+module "private_dns_zone" {
+  source = "../../modules/azure/dns"
+
+  private_zone_name   = "stevantest.org"
+  resource_group_name = azurerm_resource_group.azure_infra.name
+  vnet_id             = module.vnet.vnet_id
+  private_zone_vnet_link = "stevaninfralink"
+}

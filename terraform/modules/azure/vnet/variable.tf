@@ -5,12 +5,12 @@ variable "vnet_name" {
 
 variable "resource_group_name" {
   type = string
-  description = "Virtual Network name"
+  description = "Name of the resource group"
 }
 
 variable "resource_group_location" {
   type = string
-  description = "Virtual Network name"
+  description = "Region where resource group is located"
 }
 
 variable "cidr_address_space" {
