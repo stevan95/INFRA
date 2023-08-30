@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "azure_infra" {
   name     = "infra-azure-rg"
-  location = "East US"
+  location = "westus"
 }
 
 module "vnet" {
@@ -31,4 +31,15 @@ module "private_dns_zone" {
   resource_group_name = azurerm_resource_group.azure_infra.name
   vnet_id             = module.vnet.vnet_id
   private_zone_vnet_link = "stevaninfralink"
+}
+
+module "vm_instance" {
+  source = "../../modules/azure/vm"
+
+  vm_eni_name             = "testvm"
+  resource_group_name     = azurerm_resource_group.azure_infra.name
+  resource_group_location = azurerm_resource_group.azure_infra.location
+  azurerm_subnet_id       = module.vnet.subnet_ids["infra-subnet-1"]
+  vm_name                 = "testvm"
+  create_public_ip        = true
 }
