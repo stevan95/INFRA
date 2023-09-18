@@ -1,0 +1,41 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ template "elasticsearch.name" . }}-headless
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{- if .Values.service.labels }}
+{{ toYaml .Values.service.labels | indent 4}}
+{{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+{{- if .Values.service.selectors }}
+{{ toYaml .Values.service.selectors | indent 4}}
+{{- end }}
+  ports:
+  - port: {{ .Values.service.httpPort }}
+    protocol: TCP
+    targetPort: {{ .Values.service.httpPort }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ template "elasticsearch.name" . }}-headless
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{- if .Values.service.labels }}
+{{ toYaml .Values.service.labels | indent 4}}
+{{- end }}
+spec:
+  type: None
+  selector:
+{{- if .Values.service.selectors }}
+{{ toYaml .Values.service.selectors | indent 4}}
+{{- end }}
+  ports:
+  - name: {{ .Values.service.httpPortName | default "http" }}
+    port: {{ .Values.service.httpPort }}
+  - name: {{ .Values.service.transportPortName | default "transport" }}
+    port: {{ .Values.service.transportPort }}

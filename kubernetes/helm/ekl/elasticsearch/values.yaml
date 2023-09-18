@@ -1,0 +1,26 @@
+global:
+  namespace: kube-system
+
+service:
+  labels: 
+    k8s-app: elasticsearch-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: "Elasticsearch"
+  selectors:
+    k8s-app: elasticsearch-logging
+  type: ClusterIP
+  httpPort: 9200
+  transportPort: 9300
+
+statefulset:
+  labels:
+    k8s-app: elasticsearch-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+  selectors:
+    k8s-app: elasticsearch-logging
+  replicas: 2
+  volumes:
+    storageClass: cloud-ssd
+    storageRequest: 30gb
