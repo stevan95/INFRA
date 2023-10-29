@@ -1,4 +1,4 @@
-resource "aws_vpc" "this" {
+resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
 
   enable_dns_support   = true
@@ -9,8 +9,8 @@ resource "aws_vpc" "this" {
   }
 }
 
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
+resource "aws_internet_gateway" "aws-ig" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name = "${var.env}-igw"
@@ -20,7 +20,7 @@ resource "aws_internet_gateway" "this" {
 resource "aws_subnet" "private" {
   count = length(var.private_subnets)
 
-  vpc_id            = aws_vpc.this.id
+  vpc_id            = aws_vpc.vpc.id
   cidr_block        = var.private_subnets[count.index]
   availability_zone = var.azs[count.index]
 
@@ -33,7 +33,7 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "public" {
   count = length(var.public_subnets)
 
-  vpc_id            = aws_vpc.this.id
+  vpc_id            = aws_vpc.vpc.id
   cidr_block        = var.public_subnets[count.index]
   availability_zone = var.azs[count.index]
 
@@ -43,7 +43,7 @@ resource "aws_subnet" "public" {
   )
 }
 
-resource "aws_eip" "this" {
+resource "aws_eip" "ng-ip" {
   vpc = true
 
   tags = {
@@ -51,23 +51,23 @@ resource "aws_eip" "this" {
   }
 }
 
-resource "aws_nat_gateway" "this" {
-  allocation_id = aws_eip.this.id
+resource "aws_nat_gateway" "aws-ng" {
+  allocation_id = aws_eip.ng-ip.id
   subnet_id     = aws_subnet.public[0].id
 
   tags = {
     Name = "${var.env}-nat"
   }
 
-  depends_on = [aws_internet_gateway.this]
+  depends_on = [aws_internet_gateway.aws-ig]
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this.id
+    nat_gateway_id = aws_nat_gateway.aws-ng.id
   }
 
   tags = {
@@ -76,11 +76,11 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
+    gateway_id = aws_internet_gateway.aws-ig.id
   }
 
   tags = {
