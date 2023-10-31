@@ -30,3 +30,19 @@ resource "aws_iam_role" "kubernetes_iam_sa_role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
   name               = "kubernetes_iam_sa_role"
 }
+
+resource "aws_eks_identity_provider_config" "identity_provider_config" {
+  cluster_name = aws_eks_cluster.kubernetes_cluster.name
+
+  oidc {
+    client_id                     = aws_iam_openid_connect_provider.iam_openid_connect.client_id
+    identity_provider_config_name = var.identity_provider_name
+    issuer_url                    = aws_iam_openid_connect_provider.iam_openid_connect.issuer_url
+  }
+
+  tags = {
+    env = var.enviroment
+  }
+
+  depends_on = [ aws_eks_cluster.kubernetes_cluster, aws_iam_openid_connect_provider.iam_openid_connect ]
+}

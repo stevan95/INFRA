@@ -36,6 +36,8 @@ inputs = {
     kubernetescluster_version = "1.27"
     enviroment = "dev"
     vpc_subnets = dependency.vpc.outputs.private_subnet_ids
+    node_group_name = "worker-nodes-01"
+    instance_types = ["t3.medium"]
 }
 
 retryable_errors = [

@@ -17,3 +17,31 @@ variable "enviroment" {
   type = string
   description = "Enviroment where cluster should be deployyed"
 }
+
+variable "node_group_name" {
+  type = string
+  description = "Name of worker nodes group"
+}
+
+variable "instance_types" {
+  type = list(string)
+  description = "set of strings which represent subnet ids"
+}
+
+variable "capacity_type" {
+  type = string
+  description = "Capacity type of ec2 instance (ON_DEMAND, SPOT)"
+  default = "ON_DEMAND"
+}
+
+variable "disk_size" {
+  type = string
+  description = "Size of disk default is 40Gb"
+  default = "ON_DEMAND"
+}
+
+variable "identity_provider_name" {
+  type = string
+  description = "Name of identity provider used for eks cluster"
+}
+
