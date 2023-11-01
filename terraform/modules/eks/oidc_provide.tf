@@ -35,9 +35,9 @@ resource "aws_eks_identity_provider_config" "identity_provider_config" {
   cluster_name = aws_eks_cluster.kubernetes_cluster.name
 
   oidc {
-    client_id                     = aws_iam_openid_connect_provider.iam_openid_connect.client_id
-    identity_provider_config_name = var.identity_provider_name
-    issuer_url                    = aws_iam_openid_connect_provider.iam_openid_connect.issuer_url
+    client_id                     = aws_iam_openid_connect_provider.iam_openid_connect.client_id_list
+    identity_provider_config_name = var.identity_provider_config_name
+    issuer_url                    = aws_iam_openid_connect_provider.iam_openid_connect.url
   }
 
   tags = {

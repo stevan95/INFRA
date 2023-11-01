@@ -35,12 +35,12 @@ variable "capacity_type" {
 }
 
 variable "disk_size" {
-  type = string
+  type = number
   description = "Size of disk default is 40Gb"
-  default = "ON_DEMAND"
+  default = 40
 }
 
-variable "identity_provider_name" {
+variable "identity_provider_config_name" {
   type = string
   description = "Name of identity provider used for eks cluster"
 }

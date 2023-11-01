@@ -2,7 +2,7 @@ resource "aws_eks_node_group" "worker_nede_group" {
   cluster_name    = aws_eks_cluster.kubernetes_cluster.name
   node_group_name = var.node_group_name
   node_role_arn   = aws_iam_role.worker_node_role.arn
-  subnet_ids      = aws_subnet.vpc_subnets[*].id
+  subnet_ids      = var.vpc_subnets
   capacity_type = var.capacity_type
   disk_size = var.disk_size
   instance_types = var.instance_types

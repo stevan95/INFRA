@@ -38,6 +38,7 @@ inputs = {
     vpc_subnets = dependency.vpc.outputs.private_subnet_ids
     node_group_name = "worker-nodes-01"
     instance_types = ["t3.medium"]
+    identity_provider_config_name = "oidc-proveder-config"
 }
 
 retryable_errors = [
