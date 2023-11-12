@@ -1,0 +1,9 @@
+controller:
+  k8sTagClusterId: dev_cluster01
+  extraCreateMetadata: true
+  serviceAccount:
+    name: ebs-csi-controller-sa
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::022865527167:role/aws-ebs-csi-driver-controller
+node:
+  tolerateAllTaints: true
