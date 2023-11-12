@@ -1,0 +1,15 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.fluentd.serviceAccount.name }}
+  labels:
+{{- include "fluentd-labels" . | indent 2 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.fluentd.serviceAccount.name }}
+  namespace: {{ .Values.fluentd.serviceAccount.namespace }}
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.fluentd.serviceAccount.name }}
+  apiGroup: ""
