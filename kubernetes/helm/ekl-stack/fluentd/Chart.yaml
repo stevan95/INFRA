@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fluentd
+description: Fluentd helm chart
+type: application
+version: 1.0.0
+appVersion: v1.16-1

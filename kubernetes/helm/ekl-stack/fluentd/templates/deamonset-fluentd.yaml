@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.fluentd.application.name }}-{{ .Chart.AppVersion }}
+  namespace: {{ .Values.fluentd.application.namespace }}
+  labels:
+    version: {{ .Chart.AppVersion }}
+{{- include "fluentd-labels" . | indent 2 }}
+spec:
+  selector:
+    matchLabels:
+{{- include "fluentd-selectors" . | indent 4 }}
+  template:
+    metadata:
+      labels:
+        version: {{ .Chart.AppVersion }}
+{{- include "fluentd-labels" . | indent 6 }}
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: {{ .Values.fluentd.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.fluentd.application.name }}
+        image: {{ .Values.fluentd.application.image }}:{{ .Chart.AppVersion }}
+        env:
+        {{- range .Values.fluentd.application.envs }}
+        - name: {{ .name }}
+          value: {{ .value }}
+        {{- end }}
+        resources:
+          {{- toYaml $.Values.fluentd.application.resources | nindent 10 }}
+        volumeMounts:
+          {{- toYaml $.Values.fluentd.application.volumeMounts | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      {{- toYaml $.Values.fluentd.application.volumes | nindent 6 }}

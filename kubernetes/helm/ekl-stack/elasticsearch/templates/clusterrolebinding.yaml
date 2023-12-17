@@ -1,0 +1,16 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: {{ .Values.elasticsearch.namespace }}
+  name: {{ .Values.elasticsearch.name }}
+  labels:
+{{- include "elasticsearch-labels" . | indent 2 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.elasticsearch.name }}
+  namespace: {{ .Values.elasticsearch.namespace }}
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.elasticsearch.name }}
+  apiGroup: ""

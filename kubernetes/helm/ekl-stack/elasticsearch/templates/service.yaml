@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.elasticsearch.name }}
+  namespace: {{ .Values.elasticsearch.namespace }}
+  labels:
+{{- include "elasticsearch-labels" . | indent 2 }}
+    kubernetes.io/name: "Elasticsearch"
+spec:
+  ports:
+  {{- range .Values.elasticsearch.service.ports }}
+  - containerPort: {{ .containerPort }}
+    name: {{ .name }}
+    protocol: {{ .protocol }}
+  {{- end }}
+  selector:
+{{- include "elasticsearch-labels-selectors" . | indent 2 }}

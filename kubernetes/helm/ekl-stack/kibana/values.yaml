@@ -1,0 +1,19 @@
+kibana:
+  name: kibana-logging
+  namespace: kube-system
+  replicas: 1
+  image: kibana
+  resources:
+    limits:
+      cpu: 1000m
+    requests:
+      cpu: 100m
+  envs:
+    - name: ELASTICSEARCH_URL
+      value: http://elasticsearch-logging:9200
+  ports:
+    - containerPort: 5601
+      name: ui
+      protocol: TCP
+  service:
+    type: LoadBalancer

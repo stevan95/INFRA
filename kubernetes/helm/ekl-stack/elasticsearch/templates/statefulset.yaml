@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.elasticsearch.name }}
+  namespace: {{ .Values.elasticsearch.namespace }}
+  labels:
+    version: {{ .Chart.AppVersion }}
+{{- include "elasticsearch-labels" . | indent 2 }}
+spec:
+  serviceName: {{ .Values.elasticsearch.name }}
+  replicas: {{ .Values.elasticsearch.replicas }}
+  selector:
+    matchLabels:
+      k8s-app: {{ .Values.elasticsearch.name }}
+      version: {{ .Chart.AppVersion }}
+  template:
+    metadata:
+      labels:
+        k8s-app: elasticsearch-logging
+        version: {{ .Chart.AppVersion }}
+        kubernetes.io/cluster-service: "true"
+    spec:
+      serviceAccountName: {{ .Values.elasticsearch.name }}
+      containers:
+      - image: {{ .Values.elasticsearch.image }}:{{ .Chart.AppVersion }}
+        name: {{ .Values.elasticsearch.name }}
+        resources:
+          {{- toYaml $.Values.elasticsearch.resources | nindent 10 }}
+        ports:
+        {{- range .Values.elasticsearch.ports }}
+        - containerPort: {{ .containerPort }}
+          name: {{ .name }}
+          protocol: {{ .protocol }}
+        {{- end }}
+        volumeMounts:
+          {{- toYaml $.Values.elasticsearch.volumeMounts | nindent 8 }}
+        env:
+        - name: "NAMESPACE"
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      # Elasticsearch requires vm.max_map_count to be at least 262144.
+      # If your OS already sets up this number to a higher value, feel free
+      # to remove this init container.
+      initContainers:
+      - image: {{ .Values.elasticsearch.initContainers.image }}
+        command: ["/sbin/sysctl", "-w", "vm.max_map_count=262144"]
+        name: {{ .Values.elasticsearch.initContainers.name }}
+        securityContext:
+          privileged: true
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.elasticsearch.volume.name }}
+    spec:
+      storageClassName: {{ .Values.elasticsearch.volume.storageClass }}
+      accessModes: [ {{ .Values.elasticsearch.volume.accessModes | quote }} ]
+      resources:
+        requests:
+          storage: {{ .Values.elasticsearch.volume.resources.storage }}

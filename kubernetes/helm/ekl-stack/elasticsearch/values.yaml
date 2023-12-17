@@ -1,0 +1,35 @@
+elasticsearch:
+  name: elasticsearch-logging
+  namespace: kube-system
+  image: elasticsearch
+  service:
+    ports:
+      - containerPort: 9200
+        name: db
+        protocol: TCP
+  replicas: 2
+  resources:
+    limits:
+      cpu: 1000m
+    requests:
+      cpu: 100m
+  ports:
+    - containerPort: 9200
+      name: db
+      protocol: TCP
+    - containerPort: 9300
+      name: transport
+      protocol: TCP
+  volumeMounts:
+    - name: elasticsearch-logging
+      mountPath: /data
+  initContainers:
+    name: elasticsearch-logging-init
+    image: alpine:3.6
+  volume:
+    name: elasticsearch-logging
+    storageClass: cloud-ssd
+    accessModes: ReadWriteOnce
+    resources:
+      storage: 31Gi
+

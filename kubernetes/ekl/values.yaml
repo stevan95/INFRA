@@ -1,4 +1,0 @@
-fluentd:
-  serviceAccount:
-    name: fluentd-es
-    namespace: kube-system

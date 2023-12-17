@@ -1,5 +1,0 @@
-apiVersion: v1
-description: Fluentd Helm Chart
-name: fluentd
-version: 8.5.1
-appVersion: 8.5.1

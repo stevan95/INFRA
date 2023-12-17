@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.kibana.name }}
+  namespace: {{ .Values.kibana.namespace }}
+  labels:
+{{- include "kibana-labels" . | indent 2 }}
+    kubernetes.io/name: "Kibana"
+spec:
+  ports:
+  {{- range .Values.kibana.ports }}
+  - containerPort: {{ .containerPort }}
+    name: {{ .name }}
+    protocol: {{ .protocol }}
+  {{- end }}
+  selector:
+{{- include "kibana-labels-selectors" . | indent 2 }}
+  type: {{ .Values.kibana.service.type }}

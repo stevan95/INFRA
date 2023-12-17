@@ -1,0 +1,27 @@
+{{- $systemConf := .Files.Get "files/system.conf" -}}
+{{- $containersinputConf := .Files.Get "files/containers.input.conf" -}}
+{{- $systeminputConf := .Files.Get "files/system.input.conf" -}}
+{{- $forwardinputConf := .Files.Get "files/forward.input.conf" -}}
+{{- $monitoringConf := .Files.Get "files/monitoring.conf" -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.fluentd.application.name }}-config-{{ .Chart.AppVersion }}
+  namespace: {{ .Values.fluentd.application.namespace }}
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  system.conf: |-
+{{ $systemConf | indent 4 }}
+
+  containers.input.conf: |-
+{{ $containersinputConf }}
+
+  system.input.conf: |-
+{{ $systeminputConf }}
+
+  forward.input.conf: |-
+{{ $forwardinputConf }}
+
+  monitoring.conf: |-
+{{ $monitoringConf }}
