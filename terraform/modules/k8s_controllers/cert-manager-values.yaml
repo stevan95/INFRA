@@ -1,0 +1,10 @@
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::022865527167:role/cert-manager
+securityContext:
+  fsGroup: 1001
+clusterResourceNamespace: cert-manager
+global:
+  leaderElection:
+    namespace: cert-manager
+installCRDs: true
