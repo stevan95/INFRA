@@ -43,7 +43,8 @@ resource "helm_release" "cert_manager" {
   namespace = "cert-manager"
 
   depends_on = [
-    kubernetes_namespace.cert_manager_namespace
+    kubernetes_namespace.cert_manager_namespace,
+    helm_release.nginx_ingress,
   ]
 }
 
@@ -56,22 +57,17 @@ resource "kubernetes_manifest" "clusterissuer" {
     }
     spec = {
       acme = {
-        server             = "https://acme-staging-v02.api.letsencrypt.org/directory"
+        server             = "https://acme-v02.api.letsencrypt.org/directory"
         email              = "mstevan95@gmail.com"
         privateKeySecretRef = {
           name = "letsencrypt-prod"
         }
         solvers = [
           {
-            selector = {
-                dnsZones = [
-                    "stevank8stest.com"
-                ]
-            }
             dns01 = {
               route53 = {
-                region = "us-east-1"
-                role   = "arn:aws:iam::022865527167:role/cert-manager"
+                region       = "us-east-1"
+                hostedZoneID = ""
               }
             }
           }
@@ -84,3 +80,6 @@ resource "kubernetes_manifest" "clusterissuer" {
     helm_release.cert_manager
   ]
 }
+
+
+

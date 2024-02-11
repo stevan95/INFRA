@@ -1,6 +1,9 @@
 serviceAccount:
+  name: cert-manager
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::022865527167:role/cert-manager
+    eks.amazonaws.com/role-arn: arn:aws:iam::022865527167:role/cert-manager-role
+extraArgs:
+- --issuer-ambient-credentials
 securityContext:
   fsGroup: 1001
 clusterResourceNamespace: cert-manager

@@ -1,0 +1,28 @@
+configs:
+  params:
+    server.insecure: true
+
+controller:
+  replicas: 1
+
+server:
+  replicas: 1
+  ingress:
+    enabled: true
+    hostname: argocd.stevank8stest.com 
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    extraTls:
+      - hosts:
+        - argocd.stevank8stest.com 
+        secretName: argocd-tls
+
+repoServer:
+  replicas: 1
+
+applicationSet:
+  replicaCount: 1
